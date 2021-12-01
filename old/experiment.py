@@ -1,8 +1,5 @@
 import numpy as np
 from mushroom_rl.environments import GridWorld
-from policy_iteration import PolicyIteration
-from v_policy import VPolicy
-from mushroom_rl.utils.table import Table
 
 if __name__ == '__main__':
     from mushroom_rl.core import Core
@@ -18,8 +15,7 @@ if __name__ == '__main__':
     env = GridWorld(height=5, width=5, start=(0, 0), goal=(2, 2))
     # Using an epsilon-greedy policy
     epsilon = Parameter(value=0.1)
-    # pi = EpsGreedy(epsilon=epsilon)
-    pi = VPolicy()
+    pi = EpsGreedy(epsilon=epsilon)
 
     env.reset()
     env.render()
@@ -30,9 +26,8 @@ if __name__ == '__main__':
                                output_shape=(env.info.action_space.n,),
                                n_actions=env.info.action_space.n)
 
-    # agent = QLearning(env.info, pi, learning_rate=learning_rate)
+    agent = QLearning(env.info, pi, learning_rate=learning_rate)
     print(env.info)
-    agent = PolicyIteration(env.info, pi)
     # Reinforcement learning experiment
     core = Core(agent, env)
 

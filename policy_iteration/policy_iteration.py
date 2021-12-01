@@ -1,54 +1,57 @@
 import numpy as np
-from mushroom_rl.core import Agent
-from mushroom_rl.utils.table import Table
+from copy import deepcopy
 
 
-def _parse(sample):
+def policy_iteration(transition, reward, gamma, theta):
     """
-    Utility to parse the sample.
-    Args:
-         sample (list): the current episode step.
-    Returns:
-        A tuple containing state, action, reward, next state and absorbing
+    Computes the optimal value function and policy by using policy iteration
+
+    :param theta: small positive number determining6:the accuracy of estimation
+    :param transition: transition matrix
+    :param reward: reward matrix
+    :param gamma: discount factor
+    :return: optimal value function and policy
     """
-    state = sample[0]
-    action = sample[1]
-    reward = sample[2]
-    next_state = sample[3]
-    absorbing = sample[4]
+    n_s, n_a, _ = transition.shape
 
-    return state, action, reward, next_state, absorbing
+    pi = np.zeros(n_s, dtype=int)
+    value_function = np.zeros(n_s)
+    policy_stable = False
 
-
-class PolicyIteration(Agent):
-    def __init__(self, mdp_info, policy, features=None):
-        """
-        Constructor.
-        """
-        self.V = Table(mdp_info.observation_space.shape)
-        policy.set_v(self.V)
-
-        self._add_save_attr(V='mushroom')
-        super().__init__(mdp_info, policy, features)
-
-    def fit(self, dataset):
-        theta = 0.001
-        delta = 0
-        policy_stable = False
-        while not policy_stable:
-            for sample in dataset:
-                print(dataset)
-                state, action, reward, next_state, _ = _parse(sample)
-                while theta > delta:
-                    v_current = self.V[state]
-                    self.V[state] = reward + self.mdp_info.gamma * self.V[next_state]
-                    delta = np.max([delta, np.linalg.norm(v_current-self.V[state])])
-            for sample in dataset:
-                state, action, reward, next_state, _ = _parse(sample)
-                policy_stable = True
-                old_action = self.policy.draw_action(state)
-                new_action = np.max(reward + self.mdp_info.gamma * self.V[next_state])
-                if not (old_action == new_action):
+    while not policy_stable:
+        while True:
+            # copy value function for the value iteration
+            old_value_function = deepcopy(value_function)
+            delta = 0
+            # need to recreate this for theta instead of eps & change the loop
+            for state in range(n_s):
+                action = pi[state]
+                # compute p(s' |s, pi(a))
+                t = transition[state, action, :]
+                # compute reward depending on state and pi(a)
+                r = reward[state, action, :]
+                # compute value of state
+                value_function[state] = t.dot(r + gamma * old_value_function)
+                # compute, whether there is a significant change between the old value and new value of state
+                delta = np.max([delta, np.linalg.norm(value_function[state] - old_value_function[state])])
+            if delta <= theta:
+                break
+        # policy evaluation complete
+        policy_stable = True
+        for state in range(n_s):
+            # current value of the state, taken as maximum value, then updated throughout the algorithm
+            v_max = value_function[state]
+            for action in range(n_a):
+                # compute p(s' |s, a)
+                t = transition[state, action, :]
+                # compute reward depending on state and action
+                r = reward[state, action, :]
+                # compute value of state for this action
+                v_a = t.T.dot(r + gamma * value_function)
+                # if value of state with the current action is higher than with original policy, update policy
+                if v_a > v_max:
+                    pi[state] = action
+                    v_max = v_a
+                    # we updated the policy, so we need to do policy evaluation again
                     policy_stable = False
-                # for now i didnt update the policy cos no idea how
-
+    return value_function, pi
