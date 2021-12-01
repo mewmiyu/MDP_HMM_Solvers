@@ -36,7 +36,7 @@ var
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit policy_iteration  coverage reports
+# Unit old  coverage reports
 htmlcov
 .tox
 .coverage
