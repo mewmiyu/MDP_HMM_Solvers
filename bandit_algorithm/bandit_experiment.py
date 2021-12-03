@@ -9,7 +9,9 @@ if __name__ == '__main__':
     avg_reward1 = []
     estimated_q = []
     actual_q = []
+    # compute for various epsilon
     for epsilon in ([0.1, 0.2, 0.3]):
+        # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
             np.random.seed(1)
             action_values = [np.random.randn() for _ in range(k)]
@@ -26,6 +28,9 @@ if __name__ == '__main__':
         avg_reward1 = [x/iterations for x in avg_reward1]
         estimated_q = [x/iterations for x in estimated_q]
         actual_q = [x/iterations for x in actual_q]
+
+        print("Actual average value-action"f'{actual_q}')
+        print("Estimated average value-action"f'{estimated_q}')
 
         plt.plot(avg_reward1, label=f"epsilon='{epsilon}'")
         plt.xlabel("Steps")

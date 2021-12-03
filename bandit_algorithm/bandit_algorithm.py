@@ -1,5 +1,11 @@
 import numpy as np
 
+"""
+Bandit algorithm 
+"Reinforcement Learning"
+Richard S. Sutton et Andrew G. Barto. 2018
+"""
+
 
 class Bandit:
     def __init__(self, k=10, epsilon=.3, action_values=None):
