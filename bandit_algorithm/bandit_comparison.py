@@ -16,11 +16,12 @@ if __name__ == '__main__':
     estimated_q = []
     estimated_q2 = []
     policy = []
+    rng = np.random.default_rng()
     # compute for various epsilon
     for alpha, epsilon in zip([0.3, 0.5, 1], [0.1, 0.2, 0.3]):
         # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
-            action_values = np.linspace(-10, 0, 5)
+            action_values = [rng.random() * -1 for _ in range(k)]
             bdt = Bandit(k, epsilon, action_values, True)
             bdt2 = Bandit2(k, alpha, action_values)
             bdt.play(1000)
@@ -46,6 +47,7 @@ if __name__ == '__main__':
 
         estimated_q2 = [np.exp(alpha * actual_q[x]) * policy[x] for x in range(5)]
         estimated_q2 = [np.log(estimated_q2[i] / sum(estimated_q2)) for i in range(len(estimated_q2))]
+        estimated_q2 = [estimated_q2[i] + 1 for i in range(len(estimated_q2))]
 
         print("Actual average value-action"f'{actual_q}')
         print("Estimated average value-action (greedy)"f'{estimated_q}')
