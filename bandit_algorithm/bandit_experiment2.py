@@ -11,12 +11,11 @@ if __name__ == '__main__':
     actual_q = []
     policy = []
     # compute for various epsilon
-    for alpha in ([0.0, 0.1, 1.0]):
+    for alpha in ([0.2, 0.4, 1.0]):
         # do 200 iterations of 1000 steps and compute the average reward
         bdt = None
         for i in range(iterations):
-            np.random.seed(1)
-            action_values = [np.random.randn() - 2 for _ in range(k)]
+            action_values = np.linspace(-10, 0, 5)
             bdt = Bandit2(k, alpha, action_values)
             bdt.play(1000)
             if i == 0:

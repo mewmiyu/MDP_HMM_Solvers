@@ -35,8 +35,8 @@ class Bandit2:
         :param a: action that should be taken
         :return: the corresponding reward
         """
-        # actual reward is selected from a distribution with q*(a) as mean
-        return np.random.randn() + self.action_values[a]  # needs to be negative
+        # actual reward should be negative, takes the action-value of the state as reward
+        return self.action_values[a]
 
     def choose_action(self):
         """

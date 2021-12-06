@@ -20,12 +20,11 @@ if __name__ == '__main__':
     for alpha, epsilon in zip([0.3, 0.5, 1], [0.1, 0.2, 0.3]):
         # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
-            np.random.seed(1)
-            action_values = [np.random.randn() - 2 for _ in range(k)]
-            bdt = Bandit(k, epsilon, action_values)
+            action_values = np.linspace(-10, 0, 5)
+            bdt = Bandit(k, epsilon, action_values, True)
             bdt2 = Bandit2(k, alpha, action_values)
-            bdt.play(2000)
-            bdt2.play(2000)
+            bdt.play(1000)
+            bdt2.play(1000)
             if i == 0:
                 avg_reward1 = bdt.avg_reward
                 avg_reward2 = bdt2.avg_reward
