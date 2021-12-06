@@ -17,13 +17,13 @@ if __name__ == '__main__':
     estimated_q2 = []
     policy = []
     # compute for various epsilon
-    for variable in ([0.05, 0.1, 0.3]):
+    for alpha, epsilon in zip([0.3, 0.5, 1], [0.1, 0.2, 0.3]):
         # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
             np.random.seed(1)
             action_values = [np.random.randn() - 2 for _ in range(k)]
-            bdt = Bandit(k, variable, action_values)
-            bdt2 = Bandit2(k, variable, action_values)
+            bdt = Bandit(k, epsilon, action_values)
+            bdt2 = Bandit2(k, alpha, action_values)
             bdt.play(2000)
             bdt2.play(2000)
             if i == 0:
@@ -45,15 +45,15 @@ if __name__ == '__main__':
         estimated_q = [x / iterations for x in estimated_q]
         policy = [x / iterations for x in policy]
 
-        estimated_q2 = [np.exp(variable * actual_q[x]) * policy[x] for x in range(5)]
+        estimated_q2 = [np.exp(alpha * actual_q[x]) * policy[x] for x in range(5)]
         estimated_q2 = [np.log(estimated_q2[i] / sum(estimated_q2)) for i in range(len(estimated_q2))]
 
         print("Actual average value-action"f'{actual_q}')
         print("Estimated average value-action (greedy)"f'{estimated_q}')
         print("Estimated average value-action (inference)"f'{estimated_q2}')
 
-        plt.plot(avg_reward1, label=f"epsilon='{variable}'")
-        plt.plot(avg_reward2, linestyle='--', label=f"alpha='{variable}'")
+        plt.plot(avg_reward2, linestyle='--', label=f"alpha='{alpha}'")
+        plt.plot(avg_reward1, label=f"epsilon='{epsilon}'")
         plt.xlabel("Steps")
         plt.ylabel("Average Reward for 200 Iterations")
         plt.title("5-armed Bandit Testbed Comparison")
