@@ -13,8 +13,8 @@ if __name__ == '__main__':
     for epsilon in ([0, 0.1, 0.2, 1.0]):
         # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
-            np.random.seed(1)
-            action_values = [np.random.randn() + 2 for _ in range(k)]
+            np.random.seed(i)
+            action_values = [np.random.randn() for _ in range(k)]
             bdt = Bandit(k, epsilon, action_values)
             bdt.play(1000)
             if i == 0:
@@ -31,7 +31,6 @@ if __name__ == '__main__':
 
         print("Actual average value-action"f'{actual_q}')
         print("Estimated average value-action"f'{estimated_q}')
-        print("Average reward"f'{avg_reward1}')
 
         plt.plot(avg_reward1, label=f"epsilon='{epsilon}'")
         plt.xlabel("Steps")

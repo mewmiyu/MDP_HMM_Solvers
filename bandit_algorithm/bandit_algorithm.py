@@ -8,7 +8,7 @@ Richard S. Sutton et Andrew G. Barto. 2018
 
 
 class Bandit:
-    def __init__(self, k=10, epsilon=.3, action_values=None):
+    def __init__(self, k=10, epsilon=.3, action_values=None, comparison=False):
         """
         Initializes the values for the Bandit algorithm
 
@@ -22,6 +22,7 @@ class Bandit:
         self.epsilon = epsilon
         self.actions = range(k)
         self.action_values = action_values
+        self.comparison = comparison
 
         self.total_reward = 0  # count the total reward
         self.avg_reward = []  # count the average reward for every step
@@ -34,7 +35,10 @@ class Bandit:
         :return: the corresponding reward
         """
         # actual reward is selected from a distribution with q*(a) as mean
-        return np.random.randn() + self.action_values[a]
+        if self.comparison:
+            return self.action_values[a]
+        else:
+            return np.random.randn() + self.action_values[a]
 
     def take_action(self, a):
         """
