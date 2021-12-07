@@ -61,3 +61,4 @@ class Bandit2:
 
         self.total_reward += reward  # the total reward for every step
         self.avg_reward.append(self.total_reward / self.total_count)  # average reward
+

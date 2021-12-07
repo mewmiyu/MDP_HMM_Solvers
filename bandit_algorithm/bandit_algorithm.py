@@ -26,6 +26,7 @@ class Bandit:
 
         self.total_reward = 0  # count the total reward
         self.avg_reward = []  # count the average reward for every step
+        self.best_avg_reward = []  # average reward, when taking the best action for comparison
 
     def bandit(self, a):
         """
@@ -55,6 +56,8 @@ class Bandit:
         # we want to use the average reward here because it visualizes how the algorithm improves
         # e.g. the average reward will get greater with every step only if the
         # chosen action was better than the one before
+        self.best_avg_reward.append((self.action_values[np.argmax(self.Q)]) / sum(self.N))
+        # average reward, when taking the best action for comparison
 
     def choose_action(self):
         """

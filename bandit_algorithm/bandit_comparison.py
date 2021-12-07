@@ -12,16 +12,17 @@ if __name__ == '__main__':
     iterations = 200
     avg_reward1 = []
     avg_reward2 = []
+    avg_best_reward = []
     actual_q = []
     estimated_q = []
     estimated_q2 = []
     policy = []
     rng = np.random.default_rng()
     # compute for various epsilon
-    for alpha, epsilon in zip([0.3, 0.5, 1], [0.1, 0.2, 0.3]):
+    for alpha, epsilon in zip([.1, 1, 10], [0.01, 0.1, 1]):
         # do 200 iterations of 1000 steps and compute the average reward
         for i in range(iterations):
-            action_values = [rng.random() * -1 for _ in range(k)]
+            action_values = [rng.random() * -2 for _ in range(k)]
             bdt = Bandit(k, epsilon, action_values, True)
             bdt2 = Bandit2(k, alpha, action_values)
             bdt.play(1000)
@@ -32,18 +33,21 @@ if __name__ == '__main__':
                 actual_q = action_values
                 estimated_q = bdt.Q
                 policy = bdt2.policy
+                avg_best_reward = bdt.best_avg_reward
             else:
                 avg_reward1 = [x + y for x, y in zip(avg_reward1, bdt.avg_reward)]
                 avg_reward2 = [a + b for a, b in zip(avg_reward2, bdt2.avg_reward)]
                 actual_q = [x + y for x, y in zip(actual_q, action_values)]
                 estimated_q = [x + y for x, y in zip(estimated_q, bdt.Q)]
                 policy = [x + y for x, y in zip(policy, bdt2.policy)]
+                avg_best_reward = [x + y for x, y in zip(avg_best_reward, bdt.best_avg_reward)]
 
         avg_reward1 = [x/iterations for x in avg_reward1]
         avg_reward2 = [c/iterations for c in avg_reward2]
         actual_q = [x / iterations for x in actual_q]
         estimated_q = [x / iterations for x in estimated_q]
         policy = [x / iterations for x in policy]
+        avg_best_reward = [c / iterations for c in avg_best_reward]
 
         estimated_q2 = [np.exp(alpha * actual_q[x]) * policy[x] for x in range(5)]
         estimated_q2 = [np.log(estimated_q2[i] / sum(estimated_q2)) for i in range(len(estimated_q2))]
@@ -55,9 +59,10 @@ if __name__ == '__main__':
 
         plt.plot(avg_reward2, linestyle='--', label=f"alpha='{alpha}'")
         plt.plot(avg_reward1, label=f"epsilon='{epsilon}'")
+
         plt.xlabel("Steps")
         plt.ylabel("Average Reward for 200 Iterations")
         plt.title("5-armed Bandit Testbed Comparison")
-        plt.legend()
-
+    plt.plot(avg_best_reward, linestyle='-.', label="best reward")
+    plt.legend()
     plt.show()
