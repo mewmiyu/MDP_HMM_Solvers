@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.special import logsumexp
 
 """
 Bandit algorithm, when using the inference based approach.
@@ -10,7 +11,8 @@ and get the corresponding reward, according to the Bayes Rule.
 class Bandit2:
     def __init__(self, k=10, alpha=.3, action_values=None):
         self.k = k
-        self.policy = np.ones(self.k) / self.k
+        # logarithmic form of the uniform policy prior
+        self.log_policy = - np.log(self.k) * np.ones(self.k)
         self.action_values = action_values
         self.alpha = alpha
         self.N = np.zeros(k)
@@ -35,8 +37,8 @@ class Bandit2:
         :param a: action that should be taken
         :return: the corresponding reward
         """
-        # actual reward should be negative, takes the action-value of the state as reward
-        return self.action_values[a]
+        # actual reward should be negative, takes the normalized action-value of the state as reward
+        return (self.action_values[a] - self.action_values.max()) / np.abs(self.action_values.min())
 
     def choose_action(self):
         """
@@ -45,7 +47,8 @@ class Bandit2:
         :return: the corresponding action
         """
         # choose a random action based on the probabilities of the actions
-        return np.random.choice(range(self.k), p=self.policy)
+        # normalize only, when you choose the action for stability
+        return np.random.choice(range(self.k), p=np.exp(self.log_policy - logsumexp(self.log_policy)))
 
     def take_action(self, a):
         """
@@ -56,8 +59,8 @@ class Bandit2:
         self.N[a] = self.N[a] + 1
         reward = self.bandit(a)  # select an action
         # posterior = likelihood * prior
-        self.policy[a] = np.exp(self.alpha * reward) * self.policy[a]
-        self.policy = self.policy / np.sum(self.policy)
+        # log_posterior = likelihood + log_prior
+        self.log_policy[a] = self.alpha * reward + self.log_policy[a]
 
         self.total_reward += reward  # the total reward for every step
         self.avg_reward.append(self.total_reward / sum(self.N))  # average reward
