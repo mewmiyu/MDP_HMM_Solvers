@@ -12,7 +12,7 @@ if __name__ == '__main__':
     avg_best_reward = []
     action_values = np.random.uniform(low=-10, high=0, size=(k,))
 
-    for alpha, epsilon in zip([0.01, .1, 1, 10], [0.01, 0.1, 1, 10]):
+    for alpha, epsilon in zip([0.1, 1, 10], [0.01, 0.1, 1]):
         bdt = Bandit(k, epsilon, action_values, True)
         bdt2 = Bandit2(k, alpha, action_values)
         bdt.play(2000)
@@ -21,7 +21,7 @@ if __name__ == '__main__':
         avg_reward2 = bdt2.avg_reward
         actual_q = action_values
         estimated_q = bdt.Q
-        policy = bdt2.policy
+        policy = bdt2.log_policy
         avg_best_reward = bdt.best_avg_reward
 
         estimated_q2 = [np.exp(alpha * actual_q[x]) * policy[x] for x in range(len(actual_q))]
