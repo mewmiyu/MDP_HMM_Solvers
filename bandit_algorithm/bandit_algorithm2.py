@@ -13,10 +13,10 @@ class Bandit2:
         self.policy = np.ones(self.k) / self.k
         self.action_values = action_values
         self.alpha = alpha
+        self.N = np.zeros(k)
 
         self.total_reward = 0  # count the total reward
         self.avg_reward = []  # count the average reward for every step
-        self.total_count = 0  # counts the steps
 
     def play(self, n):
         """
@@ -53,12 +53,12 @@ class Bandit2:
 
         :param a: chosen action
         """
-        self.total_count = self.total_count + 1
+        self.N[a] = self.N[a] + 1
         reward = self.bandit(a)  # select an action
         # posterior = likelihood * prior
         self.policy[a] = np.exp(self.alpha * reward) * self.policy[a]
         self.policy = self.policy / np.sum(self.policy)
 
         self.total_reward += reward  # the total reward for every step
-        self.avg_reward.append(self.total_reward / self.total_count)  # average reward
+        self.avg_reward.append(self.total_reward / sum(self.N))  # average reward
 

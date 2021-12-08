@@ -56,7 +56,7 @@ class Bandit:
         # we want to use the average reward here because it visualizes how the algorithm improves
         # e.g. the average reward will get greater with every step only if the
         # chosen action was better than the one before
-        self.best_avg_reward.append((self.action_values[np.argmax(self.Q)]) / sum(self.N))
+        self.best_avg_reward.append((self.action_values[np.argmax(self.action_values)]))
         # average reward, when taking the best action for comparison
 
     def choose_action(self):
