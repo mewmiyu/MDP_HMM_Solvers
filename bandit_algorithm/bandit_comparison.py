@@ -15,8 +15,8 @@ if __name__ == '__main__':
     for alpha, epsilon in zip([0.1, 1, 10], [0.01, 0.1, 1]):
         bdt = Bandit(k, epsilon, action_values, True)
         bdt2 = Bandit2(k, alpha, action_values)
-        bdt.play(2000)
-        bdt2.play(2000)
+        bdt.play(10000)
+        bdt2.play(10000)
         avg_reward1 = bdt.avg_reward
         avg_reward2 = bdt2.avg_reward
         actual_q = action_values
@@ -39,5 +39,7 @@ if __name__ == '__main__':
         plt.ylabel(f"Average Reward")
         plt.title(f"{k}-armed Bandit Testbed Comparison")
     plt.plot(avg_best_reward, linestyle='-.', label="best reward")
+    plt.yscale('symlog')
+    plt.tight_layout()
     plt.legend()
     plt.show()
