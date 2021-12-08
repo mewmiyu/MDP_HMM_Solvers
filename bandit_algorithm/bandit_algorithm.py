@@ -35,10 +35,11 @@ class Bandit:
         :param a: action that should be taken
         :return: the corresponding reward
         """
-        # actual reward is selected from a distribution with q*(a) as mean
         if self.comparison:
-            return self.action_values[a]
+            # takes the normalized action-value of the state as reward for the comparison
+            return (self.action_values[a] - self.action_values.max()) / np.abs(self.action_values.min())
         else:
+            # actual reward is selected from a distribution with q*(a) as mean
             return np.random.randn() + self.action_values[a]
 
     def take_action(self, a):
@@ -56,8 +57,11 @@ class Bandit:
         # we want to use the average reward here because it visualizes how the algorithm improves
         # e.g. the average reward will get greater with every step only if the
         # chosen action was better than the one before
-        self.best_avg_reward.append((self.action_values[np.argmax(self.action_values)]))
-        # average reward, when taking the best action for comparison
+        if self.comparison:
+            # average reward, when taking the best action for comparison
+            best_action = np.argmax(self.action_values)
+            self.best_avg_reward.append((self.action_values[best_action] - self.action_values.max())
+                                    / np.abs(self.action_values.min()))
 
     def choose_action(self):
         """
