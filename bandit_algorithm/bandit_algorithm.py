@@ -37,7 +37,7 @@ class Bandit:
         """
         if self.comparison:
             # takes the normalized action-value of the state as reward for the comparison
-            return (self.action_values[a] - self.action_values.max()) / np.abs(self.action_values.min())
+            return self.action_values[a]
         else:
             # actual reward is selected from a distribution with q*(a) as mean
             return np.random.randn() + self.action_values[a]
@@ -60,8 +60,8 @@ class Bandit:
         if self.comparison:
             # average reward, when taking the best action for comparison
             best_action = np.argmax(self.action_values)
-            self.best_avg_reward.append((self.action_values[best_action] - self.action_values.max())
-                                    / np.abs(self.action_values.min()))
+            self.best_avg_reward.append((self.action_values[best_action] - np.max(self.action_values))
+                                    / np.abs(np.min(self.action_values)))
 
     def choose_action(self):
         """

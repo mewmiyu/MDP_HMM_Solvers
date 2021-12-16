@@ -5,10 +5,15 @@ from scipy.special import logsumexp
 Bandit algorithm, when using the inference based approach.
 You start with an uniform policy and then update the policy, when you sample an action
 and get the corresponding reward, according to the Bayes Rule.
+
+Inspired by:
+"Using EM for Reinforcement Learning"
+Peter Dayan and Geoffrey E Hinton
+1996
 """
 
 
-class Bandit2:
+class RelativePayoffProcedure:
     def __init__(self, k=10, alpha=.3, action_values=None):
         self.k = k
         # logarithmic form of the uniform policy prior
@@ -32,13 +37,13 @@ class Bandit2:
 
     def bandit(self, a):
         """
+        (The rewards NEED to be negative and between 0 and -1!!!)
         Returns the corresponding reward to an action
 
         :param a: action that should be taken
         :return: the corresponding reward
         """
-        # actual reward should be negative, takes the normalized action-value of the state as reward
-        return (self.action_values[a] - self.action_values.max()) / np.abs(self.action_values.min())
+        return self.action_values[a]
 
     def choose_action(self):
         """
@@ -47,7 +52,7 @@ class Bandit2:
         :return: the corresponding action
         """
         # choose a random action based on the probabilities of the actions
-        # normalize only, when you choose the action for stability
+        # normalize only, when you choose the action for numerical stability
         return np.random.choice(range(self.k), p=np.exp(self.log_policy - logsumexp(self.log_policy)))
 
     def take_action(self, a):
