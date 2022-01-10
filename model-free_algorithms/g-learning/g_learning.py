@@ -11,17 +11,19 @@ class GLearning(TD):
     "Taming the Noise in Reinforcement Learning via Soft Updates".
     Roy Fox, Ari Pakman, Naftali Tishby. 2017.
     """
-    def __init__(self, mdp_info, policy, learning_rate, beta=0.1):
+    def __init__(self, mdp_info, policy, learning_rate, beta_base=0.1, beta_linear=0.1):
         """
         Initializes the values.
 
         :param mdp_info: information about the MDP in the experiment.
         :param policy: policy that we want the agent to learn.
         :param learning_rate: the learning rate alpha.
-        :param beta: the inverse temperature
+        :param beta_base: the base inverse temperature
+        :param beta_linear: the constant for the linear inverse temperature
         """
         self.G = Table(mdp_info.size)
-        self.beta = beta
+        self.beta_base = beta_base
+        self.beta_linear = beta_linear
         self.n_actions = int(mdp_info.size[1])  # use a uniform prior 1/number_of_actions
         self.counter = 0  # to count the time steps in the update
 
@@ -40,9 +42,8 @@ class GLearning(TD):
         """
         # counter representing time steps
         self.counter += 1
-        print(self.counter)
         # beta = k * t, linear as learning increases
-        #self.beta = self.beta * self.counter
+        self.beta = self.beta_base + self.beta_linear * self.counter
         # current value of the state, action pair = G(state, action)
         g_current = self.G[state, action]
 
