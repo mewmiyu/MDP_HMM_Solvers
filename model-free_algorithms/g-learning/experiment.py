@@ -2,11 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mushroom_rl.environments import GridWorld
 
-"""
-Source: https://mushroomrl.readthedocs.io/en/latest/source/tutorials/tutorials.0_experiments.html
-"""
-
-
 if __name__ == '__main__':
     from mushroom_rl.core import Core
     from g_learning import GLearning
