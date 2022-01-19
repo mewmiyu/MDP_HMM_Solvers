@@ -1,6 +1,10 @@
 import numpy as np
 from mushroom_rl.environments import GridWorld
 
+"""
+Source: Mushroom Tutorial
+"""
+
 if __name__ == '__main__':
     from mushroom_rl.core import Core
     from psi_learning import PsiLearning
