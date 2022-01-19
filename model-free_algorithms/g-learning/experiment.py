@@ -1,9 +1,11 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from mushroom_rl.environments import GridWorld
 
 """
 Source: https://mushroomrl.readthedocs.io/en/latest/source/tutorials/tutorials.0_experiments.html
 """
+
 
 if __name__ == '__main__':
     from mushroom_rl.core import Core
@@ -13,42 +15,65 @@ if __name__ == '__main__':
     from mushroom_rl.utils.parameters import Parameter
     from mushroom_rl.utils.dataset import compute_J
 
-    # Set the seed
-    np.random.seed(1)
+    for size in range(10, 20, 2):
+        all_j_q = list()
+        all_j_g = list()
 
-    # Create the grid environment
-    env = GridWorld(height=5, width=5, start=(0, 0), goal=(2, 2))
-    # Using an epsilon-greedy policy
-    epsilon = Parameter(value=0.1)
-    pi = EpsGreedy(epsilon=epsilon)
+        for k in range(50):
+            # Set the seed
+            np.random.seed(k)
 
-    env.reset()
-    env.render()
+            # Create the grid environment
+            env = GridWorld(height=size, width=size, start=(0, 0), goal=(5, 5))
+            # Use an epsilon-greedy policy
+            epsilon = Parameter(value=0.1)
+            pi = EpsGreedy(epsilon=epsilon)
 
-    learning_rate = Parameter(.1 / 10)
+            env.reset()
 
-    approximator_params = dict(input_shape=10,
-                               output_shape=(env.info.action_space.n,),
-                               n_actions=env.info.action_space.n)
+            learning_rate = Parameter(.1 / 10)
 
-    agent = GLearning(env.info, pi, learning_rate=learning_rate)
-    print(env.info)
-    # Reinforcement learning experiment
-    core = Core(agent, env)
+            approximator_params = dict(input_shape=2*size,
+                                       output_shape=(env.info.action_space.n,),
+                                       n_actions=env.info.action_space.n)
 
-    # Visualize initial policy for 3 episodes
-    dataset = core.evaluate(n_episodes=3, render=True)
+            agent = QLearning(env.info, pi, learning_rate=learning_rate)
+            agent2 = GLearning(env.info, pi, learning_rate=learning_rate)
+            # Reinforcement learning experiment
+            core = Core(agent, env)
+            core2 = Core(agent2, env)
 
-    # Print the average objective value before learning
-    J = np.mean(compute_J(dataset, env.info.gamma))
-    print(f'Objective function before learning: {J}')
+            n_episodes = 1
+            j_q = list()
+            j_g = list()
 
-    # Train
-    core.learn(n_steps=2000, n_steps_per_fit=1, render=False)
+            for i in range(20):
+                # Evaluate results for n_episodes
+                dataset_q = core.evaluate(n_episodes=n_episodes, render=False)
+                dataset_g = core2.evaluate(n_episodes=n_episodes, render=False)
+                # Compute the average objective value
+                j_q.append(np.mean(compute_J(dataset_q, env.info.gamma)))
+                j_g.append(np.mean(compute_J(dataset_g, env.info.gamma)))
+                # Train
+                core.learn(n_steps=1000, n_steps_per_fit=1, render=False)
+                core2.learn(n_steps=1000, n_steps_per_fit=1, render=False)
+            all_j_q.append(j_q)
+            all_j_g.append(j_g)
 
-    # Visualize results for 3 episodes
-    dataset = core.evaluate(n_episodes=3, render=True)
+        all_j_q = np.array(all_j_q)
+        all_j_g = np.array(all_j_g)
+        steps = np.arange(0, 20000, 1000)
+        # Compute the 10, 50, 90-th percentiles and plot them
+        q_p10, q_p50, q_p90 = np.percentile(all_j_q, [10, 50, 90], 0)
+        g_p10, g_p50, g_p90 = np.percentile(all_j_g, [10, 50, 90], 0)
+        plt.fill_between(steps, q_p10, q_p90, where=q_p90 >= q_p10, label='q: [10-90] percentiles', alpha=0.2)
+        plt.plot(steps, q_p50, label='q: median')
+        plt.fill_between(steps, g_p10, g_p90, where=g_p90 >= g_p10, label='g: [10-90] percentiles',
+                         alpha=0.2)
+        plt.plot(steps, g_p50, label='g: median')
+        plt.xlabel('steps')
+        plt.ylabel('cumulative discounted reward')
+        plt.title(f'{size}''x'f'{size} Gridworld Experiment: Q-Learning vs G-Learning')
+        plt.legend()
+        plt.show()
 
-    # Print the average objective value after learning
-    J = np.mean(compute_J(dataset, env.info.gamma))
-    print(f'Objective function after learning: {J}')
