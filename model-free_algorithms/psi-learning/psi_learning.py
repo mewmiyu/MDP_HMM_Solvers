@@ -36,15 +36,11 @@ class PsiLearning(TD):
         """
         # current value of the state, action pair = Psi(state, action)
         psi_current = self.Psi[state, action]
-        print(psi_current)
 
         # mean_Psi(x) = logsumexp_a(Psi(x, a))
         mean_psi_current = logsumexp(self.Psi[state, :]) if not absorbing else 0.
         mean_psi_next = logsumexp(self.Psi[next_state, :]) if not absorbing else 0.
-        print(mean_psi_next)
-        print(mean_psi_current)
 
         # update rule for Psi(state, action)
-        # Psi(state, action) = psi_current + alpha * (- reward + gamma * mean_psi_next - mean_psi_current)
-        self.Psi[state, action] = psi_current + (self.mdp_info.gamma * mean_psi_next - mean_psi_current - reward)
-        print(self.Psi[state, action])
+        # Psi(state, action) = psi_current + alpha * (reward + gamma * mean_psi_next - mean_psi_current)
+        self.Psi[state, action] = psi_current + (self.mdp_info.gamma * mean_psi_next - mean_psi_current + reward)
