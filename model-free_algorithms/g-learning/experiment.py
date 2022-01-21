@@ -42,7 +42,7 @@ if __name__ == '__main__':
             j_q = list()
             j_g = list()
 
-            for i in range(20):
+            for i in range(25):
                 # Evaluate results for n_episodes
                 dataset_q = core.evaluate(n_episodes=n_episodes, render=False)
                 dataset_g = core2.evaluate(n_episodes=n_episodes, render=False)
@@ -50,14 +50,15 @@ if __name__ == '__main__':
                 j_q.append(np.mean(compute_J(dataset_q, env.info.gamma)))
                 j_g.append(np.mean(compute_J(dataset_g, env.info.gamma)))
                 # Train
-                core.learn(n_steps=1000, n_steps_per_fit=1, render=False)
-                core2.learn(n_steps=1000, n_steps_per_fit=1, render=False)
+                core.learn(n_steps=100, n_steps_per_fit=1, render=False)
+                core2.learn(n_steps=100, n_steps_per_fit=1, render=False)
             all_j_q.append(j_q)
             all_j_g.append(j_g)
+            print(dataset_q[0])
 
         all_j_q = np.array(all_j_q)
         all_j_g = np.array(all_j_g)
-        steps = np.arange(0, 20000, 1000)
+        steps = np.arange(0, 2500, 100)
         # Compute the 10, 50, 90-th percentiles and plot them
         q_p10, q_p50, q_p90 = np.percentile(all_j_q, [10, 50, 90], 0)
         g_p10, g_p50, g_p90 = np.percentile(all_j_g, [10, 50, 90], 0)
