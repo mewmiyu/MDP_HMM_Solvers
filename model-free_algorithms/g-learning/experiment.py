@@ -1,6 +1,19 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from mushroom_rl.environments import GridWorld
+import numpy as np
+from joblib import Parallel, delayed
+from pathlib import Path
+import matplotlib.pyplot as plt
+
+from mushroom_rl.algorithms.value import QLearning
+from mushroom_rl.core import Core
+from mushroom_rl.environments import *
+from mushroom_rl.policy import EpsGreedy
+from mushroom_rl.utils.callbacks import CollectQ
+from mushroom_rl.utils.callbacks import CollectDataset
+from mushroom_rl.utils.parameters import Parameter, ExponentialParameter
+from mushroom_rl.utils.dataset import compute_J
 
 if __name__ == '__main__':
     from mushroom_rl.core import Core
@@ -14,23 +27,22 @@ if __name__ == '__main__':
         all_j_q = list()
         all_j_g = list()
 
-        for k in range(50):
-            # Set the seed
+        for k in range(10):
             np.random.seed(k)
 
-            # Create the grid environment
-            env = GridWorld(height=size, width=size, start=(0, 0), goal=(5, 5))
-            # Use an epsilon-greedy policy
-            epsilon = Parameter(value=0.1)
+            # MDP
+            path = Path(__file__).resolve().parent / 'chain_structure'
+            p = np.load(path / 'p.npy')
+            rew = np.load(path / 'rew.npy')
+            env = FiniteMDP(p, rew, gamma=.9)
+
+            # Policy
+            epsilon = Parameter(value=1.)
             pi = EpsGreedy(epsilon=epsilon)
 
-            env.reset()
-
-            learning_rate = Parameter(.1 / 10)
-
-            approximator_params = dict(input_shape=2*size,
-                                       output_shape=(env.info.action_space.n,),
-                                       n_actions=env.info.action_space.n)
+            # Agent
+            learning_rate = ExponentialParameter(value=1., exp=.51, size=env.info.size)
+            algorithm_params = dict(learning_rate=learning_rate)
 
             agent = QLearning(env.info, pi, learning_rate=learning_rate)
             agent2 = GLearning(env.info, pi, learning_rate=learning_rate)
@@ -54,7 +66,6 @@ if __name__ == '__main__':
                 core2.learn(n_steps=100, n_steps_per_fit=1, render=False)
             all_j_q.append(j_q)
             all_j_g.append(j_g)
-            print(dataset_q[0])
 
         all_j_q = np.array(all_j_q)
         all_j_g = np.array(all_j_g)
