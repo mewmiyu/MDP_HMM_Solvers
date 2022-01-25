@@ -1,19 +1,33 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from mushroom_rl.environments import GridWorld
-import numpy as np
-from joblib import Parallel, delayed
 from pathlib import Path
 import matplotlib.pyplot as plt
 
-from mushroom_rl.algorithms.value import QLearning
-from mushroom_rl.core import Core
 from mushroom_rl.environments import *
-from mushroom_rl.policy import EpsGreedy
 from mushroom_rl.utils.callbacks import CollectQ
-from mushroom_rl.utils.callbacks import CollectDataset
 from mushroom_rl.utils.parameters import Parameter, ExponentialParameter
-from mushroom_rl.utils.dataset import compute_J
+
+"""
+Source for chain_structure: 
+https://github.com/MushroomRL/mushroom-rl/blob/dev/examples/double_chain_q_learning/double_chain.py
+"""
+def experiment(agent_name, agent_q):
+    # Reinforcement learning experiment
+    collect_Q = CollectQ(agent_q)
+    callbacks = [collect_Q]
+
+    core_value = Core(agent_name, env, callbacks)
+
+    j_q = list()
+
+    for i in range(11):
+        # Evaluate results for n_steps
+        dataset_q = core_value.evaluate(n_steps=50, render=False)
+        # Compute the average objective value
+        j_q.append(np.mean(compute_J(dataset_q, env.info.gamma)))
+        # Train
+        core_value.learn(n_steps=50, n_steps_per_fit=1, render=False)
+    return j_q
+
 
 if __name__ == '__main__':
     from mushroom_rl.core import Core
@@ -23,64 +37,58 @@ if __name__ == '__main__':
     from mushroom_rl.utils.parameters import Parameter
     from mushroom_rl.utils.dataset import compute_J
 
-    for size in range(10, 20, 2):
-        all_j_q = list()
-        all_j_g = list()
+    all_j_q = list()
+    all_j_g = list()
 
-        for k in range(10):
-            np.random.seed(k)
+    for k in range(10):
+        np.random.seed(k)
 
-            # MDP
-            path = Path(__file__).resolve().parent / 'chain_structure'
-            p = np.load(path / 'p.npy')
-            rew = np.load(path / 'rew.npy')
-            env = FiniteMDP(p, rew, gamma=.9)
+        # MDP
+        path = Path(__file__).resolve().parent / 'chain_structure'
+        # Source: https://github.com/MushroomRL/mushroom-rl/blob/dev/examples/double_chain_q_learning/double_chain.py
+        p = np.load(path / 'p.npy')
+        rew = np.load(path / 'rew.npy')
+        mu = np.zeros(p.shape[0])
+        mu[0] = 1
+        env = FiniteMDP(p, rew, gamma=0.9, mu=mu)
+        env.reset()
 
-            # Policy
-            epsilon = Parameter(value=1.)
-            pi = EpsGreedy(epsilon=epsilon)
+        # Policy
+        epsilon = Parameter(value=0.1)
+        pi = EpsGreedy(epsilon=epsilon)
 
-            # Agent
-            learning_rate = ExponentialParameter(value=1., exp=.51, size=env.info.size)
-            algorithm_params = dict(learning_rate=learning_rate)
+        # Agent
+        learning_rate = ExponentialParameter(value=1., exp=.71, size=env.info.size)
+        algorithm_params = dict(learning_rate=learning_rate)
 
-            agent = QLearning(env.info, pi, learning_rate=learning_rate)
-            agent2 = GLearning(env.info, pi, learning_rate=learning_rate)
-            # Reinforcement learning experiment
-            core = Core(agent, env)
-            core2 = Core(agent2, env)
+        agent_Q = QLearning(env.info, pi, learning_rate=learning_rate)
+        agent_v = agent_Q.Q
+        j_q = experiment(agent_Q, agent_v)
 
-            n_episodes = 1
-            j_q = list()
-            j_g = list()
+        env.reset()
 
-            for i in range(25):
-                # Evaluate results for n_episodes
-                dataset_q = core.evaluate(n_episodes=n_episodes, render=False)
-                dataset_g = core2.evaluate(n_episodes=n_episodes, render=False)
-                # Compute the average objective value
-                j_q.append(np.mean(compute_J(dataset_q, env.info.gamma)))
-                j_g.append(np.mean(compute_J(dataset_g, env.info.gamma)))
-                # Train
-                core.learn(n_steps=100, n_steps_per_fit=1, render=False)
-                core2.learn(n_steps=100, n_steps_per_fit=1, render=False)
-            all_j_q.append(j_q)
-            all_j_g.append(j_g)
+        agent_G = GLearning(env.info, pi, learning_rate=learning_rate, beta_linear=10, beta_base=1)
+        agent_v = agent_G.G
+        j_g = experiment(agent_G, agent_v)
 
-        all_j_q = np.array(all_j_q)
-        all_j_g = np.array(all_j_g)
-        steps = np.arange(0, 2500, 100)
-        # Compute the 10, 50, 90-th percentiles and plot them
-        q_p10, q_p50, q_p90 = np.percentile(all_j_q, [10, 50, 90], 0)
-        g_p10, g_p50, g_p90 = np.percentile(all_j_g, [10, 50, 90], 0)
-        plt.fill_between(steps, q_p10, q_p90, where=q_p90 >= q_p10, label='q: [10-90] percentiles', alpha=0.2)
-        plt.plot(steps, q_p50, label='q: median')
-        plt.fill_between(steps, g_p10, g_p90, where=g_p90 >= g_p10, label='g: [10-90] percentiles',
+        all_j_q.append(j_q)
+        all_j_g.append(j_g)
+
+    all_j_q = np.array(all_j_q)
+    all_j_g = np.array(all_j_g)
+    steps = np.arange(0, 550, 50)
+    # Compute the 10, 50, 90-th percentiles and plot them
+    q_p10, q_p50, q_p90 = np.percentile(all_j_q, [10, 50, 90], 0)
+    g_p10, g_p50, g_p90 = np.percentile(all_j_g, [10, 50, 90], 0)
+    plt.fill_between(steps, q_p10, q_p90, where=q_p90 >= q_p10, label='q: [10-90] percentiles', alpha=0.2)
+    plt.plot(steps, q_p50, label='q: median')
+    plt.fill_between(steps, g_p10, g_p90, where=g_p90 >= g_p10, label='g: [10-90] percentiles',
                          alpha=0.2)
-        plt.plot(steps, g_p50, label='g: median')
-        plt.xlabel('steps')
-        plt.ylabel('cumulative discounted reward')
-        plt.title(f'{size}''x'f'{size} Gridworld Experiment: Q-Learning vs G-Learning')
-        plt.legend()
-        plt.show()
+    plt.plot(steps, g_p50, label='g: median')
+    plt.xlabel('steps')
+    plt.ylabel('cumulative discounted reward')
+    plt.title('Double Chain Experiment: Q-Learning vs G-Learning')
+    plt.legend()
+    plt.show()
+
 
