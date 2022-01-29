@@ -5,21 +5,22 @@ from mushroom_rl.environments import GridWorld
 if __name__ == '__main__':
     from mushroom_rl.core import Core
     from psi_learning import PsiLearning
+    from deep_sea import DeepSea
     from mushroom_rl.algorithms.value.td.q_learning import QLearning
     from mushroom_rl.policy import EpsGreedy
     from mushroom_rl.utils.parameters import Parameter
     from mushroom_rl.utils.dataset import compute_J
 
-    for size in range(10, 20, 2):
+    for size in range(6, 7, 2):
         all_j_q = list()
         all_j_psi = list()
 
-        for k in range(50):
+        for k in range(5):
             # Set the seed
             np.random.seed(k)
 
             # Create the grid environment
-            env = GridWorld(height=size, width=size, start=(0, 0), goal=(5, 5))
+            env = DeepSea(size=size, start=(0, 0), goal=(5, 5))
             # Use an epsilon-greedy policy
             epsilon = Parameter(value=0.1)
             pi = EpsGreedy(epsilon=epsilon)
@@ -50,14 +51,14 @@ if __name__ == '__main__':
                 j_q.append(np.mean(compute_J(dataset_q, env.info.gamma)))
                 j_psi.append(np.mean(compute_J(dataset_psi, env.info.gamma)))
                 # Train
-                core.learn(n_steps=1000, n_steps_per_fit=1, render=False)
-                core2.learn(n_steps=1000, n_steps_per_fit=1, render=False)
+                core.learn(n_steps=100, n_steps_per_fit=1, render=False)
+                core2.learn(n_steps=100, n_steps_per_fit=1, render=False)
             all_j_q.append(j_q)
             all_j_psi.append(j_psi)
 
         all_j_q = np.array(all_j_q)
         all_j_psi = np.array(all_j_psi)
-        steps = np.arange(0, 20000, 1000)
+        steps = np.arange(0, 2000, 100)
         # Compute the 10, 50, 90-th percentiles and plot them
         q_p10, q_p50, q_p90 = np.percentile(all_j_q, [10, 50, 90], 0)
         psi_p10, psi_p50, psi_p90 = np.percentile(all_j_psi, [10, 50, 90], 0)
