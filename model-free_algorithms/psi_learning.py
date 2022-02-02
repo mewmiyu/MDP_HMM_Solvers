@@ -39,4 +39,4 @@ class PsiLearning(TD):
 
         # update rule for Psi(state, action)
         # Psi(state, action) = psi_current + alpha * (reward + gamma * mean_psi_next - mean_psi_current)
-        self.Psi[state, action] = psi_current + (self.mdp_info.gamma * mean_psi_next - mean_psi_current - reward)
+        self.Psi[state, action] = psi_current + (reward + self.mdp_info.gamma * mean_psi_next - mean_psi_current)
