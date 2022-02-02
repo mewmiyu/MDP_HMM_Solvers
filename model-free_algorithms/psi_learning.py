@@ -1,5 +1,3 @@
-import numpy as np
-
 from mushroom_rl.algorithms.value.td import TD
 from mushroom_rl.utils.table import Table
 from scipy.special import logsumexp
@@ -14,7 +12,6 @@ class PsiLearning(TD):
     def __init__(self, mdp_info, policy, learning_rate):
         """
         Initializes the values.
-
         :param mdp_info: information about the MDP in the experiment.
         :param policy: policy that we want the agent to learn.
         :param learning_rate: the learning rate alpha.
@@ -27,7 +24,6 @@ class PsiLearning(TD):
         """
         Updates the state and action values after interaction with the environment in order to find the optimal
         value function Psi
-
         :param state: current state
         :param action: current action
         :param reward: reward of the action in the state
@@ -43,4 +39,4 @@ class PsiLearning(TD):
 
         # update rule for Psi(state, action)
         # Psi(state, action) = psi_current + alpha * (reward + gamma * mean_psi_next - mean_psi_current)
-        self.Psi[state, action] = psi_current + (self.mdp_info.gamma * mean_psi_next - mean_psi_current + reward)
+        self.Psi[state, action] = psi_current + (self.mdp_info.gamma * mean_psi_next - mean_psi_current - reward)

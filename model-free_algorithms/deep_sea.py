@@ -9,8 +9,8 @@ class DeepSea(AbstractGridWorld):
     def __init__(self, size, goal, start=(0, 0)):
         observation_space = spaces.Discrete(size * size)
         action_space = spaces.Discrete(4)
-        horizon = 100
-        gamma = .9
+        horizon = 1000
+        gamma = 0.9
         mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
 
         action_mapping = np.random.randint(0, 2, size * size)
@@ -23,13 +23,13 @@ class DeepSea(AbstractGridWorld):
         self._grid_step(state, action)
 
         reward = 0.0
+        absorbing = False
 
         if np.array_equal(state, self._goal):
             reward += 1 + 0.01 / self._width
             absorbing = True
 
-        else:
+        elif np.array_equal(action, 3):
             reward -= 0.01 / self._width
-            absorbing = False
 
         return state, reward, absorbing, {}
