@@ -29,7 +29,7 @@ class DeepSea(AbstractGridWorld):
             reward += 1 + 0.01 / self._width
             absorbing = True
 
-        elif np.array_equal(action, 3):
+        elif action == 3:
             reward -= 0.01 / self._width
 
         return state, reward, absorbing, {}

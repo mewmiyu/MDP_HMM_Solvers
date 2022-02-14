@@ -1,3 +1,4 @@
+import numpy as np
 from mushroom_rl.algorithms.value.td import TD
 from mushroom_rl.utils.table import Table
 from scipy.special import logsumexp

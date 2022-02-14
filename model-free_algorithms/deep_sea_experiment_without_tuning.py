@@ -11,42 +11,45 @@ from mushroom_rl.utils.dataset import compute_J
 
 
 def experiment_deepsea(agent_a):
-    e_k = list()
-    for k in range(2):
+    r_k = list()
+    for k in range(100):
         # Set the seed
         np.random.seed(k)
 
         # Reinforcement learning experiment
         core = Core(agent_a, env)
+        # Train
+        core.learn(n_episodes=1000, n_steps_per_fit=1, render=False)
+        # Evaluate results for n_episodes
+        dataset_q = core.evaluate(n_episodes=1, render=False)
+        # Compute the average objective value
+        r = np.mean(compute_J(dataset_q, 1))
+        r_k.append(r)
 
-        r = 0
-        i = 1
-
-        while r < 1 and i < np.power(10, 5):
-            # Evaluate results for n_episodes
-            dataset_q = core.evaluate(n_episodes=1, render=False)
-            # Compute the average objective value
-            r += np.mean(compute_J(dataset_q, env.info.gamma)) / i
-            # Train
-            core.learn(n_episodes=1, n_steps_per_fit=1, render=False)
-            i += 1
-
-        e_k.append(i)
-    return e_k
+    return r_k
 
 
 if __name__ == '__main__':
 
-    min_size = 6
-    max_size = 14
-    all_episodes = list()
-    all_psi_episodes = list()
-    all_g_episodes = list()
-    failed_size = max_size
-    failed_size_psi = max_size
-    failed_size_g = max_size
+    min_size = 2
+    size = min_size
+    counter = 2
+    max_size = 129
 
-    for size in range(min_size, max_size, 2):
+    steps = list()
+    all_reward = list()
+    all_reward_p10 = list()
+    all_reward_p90 = list()
+    all_psi_reward = list()
+    all_psi_reward_p10 = list()
+    all_psi_reward_p90 = list()
+    all_g_reward = list()
+    all_g_reward_p10 = list()
+    all_g_reward_p90 = list()
+    best_reward = list()
+
+    while size < max_size:
+        steps.append(size)
 
         # Create the grid environment
         env = DeepSea(size, start=(0, 0), goal=(size-1, size-1))
@@ -62,41 +65,46 @@ if __name__ == '__main__':
 
         a = QLearning(env.info, pi, learning_rate=learning_rate)
 
-        episodes_k = experiment_deepsea(a)
-        if np.mean(episodes_k) == np.power(10, 5):
-            failed_size = size
-        if not failed_size <= size:
-            all_episodes.append(np.mean(episodes_k))
+        reward_k = experiment_deepsea(a)
+        q_p10, q_p50, q_p90 = np.percentile(reward_k, [10, 50, 90])
+        all_reward.append(q_p50)
+        all_reward_p10.append(q_p10)
+        all_reward_p90.append(q_p90)
 
         a2 = PsiLearning(env.info, pi, learning_rate=learning_rate)
 
-        episodes_k = experiment_deepsea(a2)
-
-        if np.mean(episodes_k) == np.power(10, 5):
-            failed_size_psi = size
-        if not failed_size_psi <= size:
-            all_psi_episodes.append(np.mean(episodes_k))
+        reward_k = experiment_deepsea(a2)
+        psi_p10, psi_p50, psi_p90 = np.percentile(reward_k, [10, 50, 90])
+        all_psi_reward.append(psi_p50)
+        all_psi_reward_p10.append(psi_p10)
+        all_psi_reward_p90.append(psi_p90)
 
         a3 = GLearning(env.info, pi, learning_rate=learning_rate)
 
-        episodes_k = experiment_deepsea(a3)
+        reward_k = experiment_deepsea(a3)
+        g_p10, g_p50, g_p90 = np.percentile(reward_k, [10, 50, 90])
+        all_g_reward.append(g_p50)
+        all_g_reward_p10.append(g_p10)
+        all_g_reward_p90.append(g_p90)
 
-        if np.mean(episodes_k) == np.power(10, 5):
-            failed_size_g = size
-        if not failed_size_g <= size:
-            all_g_episodes.append(np.mean(episodes_k))
+        sum_reward = 0
+        for j in range(size-2):
+            sum_reward -= 1 ** j * (0.01 / size)
+        best_reward.append(1 + (0.01 / size) + sum_reward)
 
-    steps = np.arange(min_size, max_size, 2)
-    steps_q = np.arange(min_size, failed_size, 2)
-    steps_psi = np.arange(min_size, failed_size_psi, 2)
-    steps_g = np.arange(min_size, failed_size_g, 2)
-    plt.plot(steps_q, np.array(all_episodes), marker='o', label='q')
-    plt.plot(steps_psi, np.array(all_psi_episodes), marker='^', label='psi')
-    plt.plot(steps_g, np.array(all_g_episodes), marker='>', label='g')
-    plt.plot(steps, [np.power(2, i-1) for i in range(min_size, max_size, 2)], label='2^L-1')
+        size = np.power(2, counter)
+        counter += 1
+
+    steps = np.array(steps)
+    plt.plot(steps, np.array(all_reward), marker='o', label='q_median')
+    plt.fill_between(steps, all_reward_p10, all_reward_p90, label='q_10:90', alpha=0.2)
+    plt.plot(steps, np.array(all_psi_reward), marker='^', label='psi_median')
+    plt.fill_between(steps,  all_psi_reward_p10, all_psi_reward_p90, label='psi_10:90', alpha=0.2)
+    plt.plot(steps, np.array(all_g_reward), marker='>', label='g_median')
+    plt.fill_between(steps, all_g_reward_p10, all_g_reward_p90, label='g_10:90', alpha=0.1)
+    plt.plot(steps, best_reward, label='best reward')
     plt.xlabel('size of gridworld')
-    plt.ylabel('number of episodes until cumulative reward is 1')
+    plt.ylabel('cumulative average reward after 1000 episodes')
     plt.title('Gridworld Experiment')
-    plt.yscale('symlog', linthresh=0.01)
     plt.legend()
     plt.show()
