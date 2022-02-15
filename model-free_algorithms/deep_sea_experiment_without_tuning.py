@@ -3,8 +3,10 @@ import numpy as np
 from mushroom_rl.core import Core
 from psi_learning import PsiLearning
 from g_learning import GLearning
+from mirl import MIRL
 from deep_sea import DeepSea
 from mushroom_rl.algorithms.value.td.q_learning import QLearning
+from mushroom_rl.algorithms.policy_search import REPS
 from mushroom_rl.policy import EpsGreedy
 from mushroom_rl.utils.parameters import Parameter
 from mushroom_rl.utils.dataset import compute_J
@@ -12,14 +14,14 @@ from mushroom_rl.utils.dataset import compute_J
 
 def experiment_deepsea(agent_a):
     r_k = list()
-    for k in range(100):
+    for k in range(2):
         # Set the seed
         np.random.seed(k)
 
         # Reinforcement learning experiment
         core = Core(agent_a, env)
         # Train
-        core.learn(n_episodes=1000, n_steps_per_fit=1, render=False)
+        core.learn(n_episodes=100, n_steps_per_fit=1, render=False)
         # Evaluate results for n_episodes
         dataset_q = core.evaluate(n_episodes=1, render=False)
         # Compute the average objective value
@@ -34,18 +36,26 @@ if __name__ == '__main__':
     min_size = 2
     size = min_size
     counter = 2
-    max_size = 129
+    max_size = 9
+        #129
 
     steps = list()
     all_reward = list()
     all_reward_p10 = list()
     all_reward_p90 = list()
+
     all_psi_reward = list()
     all_psi_reward_p10 = list()
     all_psi_reward_p90 = list()
+
     all_g_reward = list()
     all_g_reward_p10 = list()
     all_g_reward_p90 = list()
+
+    all_mirl_reward = list()
+    all_mirl_reward_p10 = list()
+    all_mirl_reward_p90 = list()
+
     best_reward = list()
 
     while size < max_size:
@@ -87,6 +97,14 @@ if __name__ == '__main__':
         all_g_reward_p10.append(g_p10)
         all_g_reward_p90.append(g_p90)
 
+        a4 = MIRL(env.info, pi, learning_rate=learning_rate)
+
+        reward_k = experiment_deepsea(a4)
+        mirl_p10, mirl_p50, mirl_p90 = np.percentile(reward_k, [10, 50, 90])
+        all_mirl_reward.append(mirl_p50)
+        all_mirl_reward_p10.append(mirl_p10)
+        all_mirl_reward_p90.append(mirl_p90)
+
         sum_reward = 0
         for j in range(size-2):
             sum_reward -= 1 ** j * (0.01 / size)
@@ -97,12 +115,19 @@ if __name__ == '__main__':
 
     steps = np.array(steps)
     plt.plot(steps, np.array(all_reward), marker='o', label='q_median')
-    plt.fill_between(steps, all_reward_p10, all_reward_p90, label='q_10:90', alpha=0.2)
+    plt.fill_between(steps, all_reward_p10, all_reward_p90, label='q_10:90', alpha=0.3)
+
     plt.plot(steps, np.array(all_psi_reward), marker='^', label='psi_median')
-    plt.fill_between(steps,  all_psi_reward_p10, all_psi_reward_p90, label='psi_10:90', alpha=0.2)
+    plt.fill_between(steps,  all_psi_reward_p10, all_psi_reward_p90, label='psi_10:90', alpha=0.25)
+
     plt.plot(steps, np.array(all_g_reward), marker='>', label='g_median')
-    plt.fill_between(steps, all_g_reward_p10, all_g_reward_p90, label='g_10:90', alpha=0.1)
+    plt.fill_between(steps, all_g_reward_p10, all_g_reward_p90, label='g_10:90', alpha=0.2)
+
+    plt.plot(steps, np.array(all_mirl_reward), marker='<', label='mirl_median')
+    plt.fill_between(steps, all_mirl_reward_p10, all_mirl_reward_p90, label='mirl_10:90', alpha=0.15)
+
     plt.plot(steps, best_reward, label='best reward')
+
     plt.xlabel('size of gridworld')
     plt.ylabel('cumulative average reward after 1000 episodes')
     plt.title('Gridworld Experiment')
