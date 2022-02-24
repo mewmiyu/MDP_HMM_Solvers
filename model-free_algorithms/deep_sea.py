@@ -13,11 +13,7 @@ class DeepSea(AbstractGridWorld):
         gamma = 0.9
         mdp_info = MDPInfo(observation_space, action_space, gamma, horizon)
 
-        action_mapping = np.random.randint(0, 2, size * size)
-        self.action_mapping = np.stack((action_mapping, 1 - action_mapping), -1)
-
         super().__init__(mdp_info, width=size, height=size, goal=goal, start=start)
-        self.num_states = size * size
 
     def _step(self, state, action):
         self._grid_step(state, action)

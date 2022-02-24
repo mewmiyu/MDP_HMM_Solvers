@@ -14,7 +14,7 @@ from mushroom_rl.utils.dataset import compute_J
 
 def experiment_deepsea(agent_a):
     r_k = list()
-    for k in range(2):
+    for k in range(10):
         # Set the seed
         np.random.seed(k)
 
@@ -36,8 +36,7 @@ if __name__ == '__main__':
     min_size = 2
     size = min_size
     counter = 2
-    max_size = 9
-        #129
+    max_size = 129
 
     steps = list()
     all_reward = list()
@@ -129,7 +128,7 @@ if __name__ == '__main__':
     plt.plot(steps, best_reward, label='best reward')
 
     plt.xlabel('size of gridworld')
-    plt.ylabel('cumulative average reward after 1000 episodes')
-    plt.title('Gridworld Experiment')
+    plt.ylabel('cumulative average reward after 100 episodes')
+    plt.title('Deep Sea Experiment')
     plt.legend()
     plt.show()
