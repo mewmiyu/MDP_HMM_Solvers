@@ -6,7 +6,7 @@ from mushroom_rl.utils import spaces
 
 
 class DeepSea(AbstractGridWorld):
-    def __init__(self, size, goal, start=(0, 0)):
+    def __init__(self, size, start, goal):
         observation_space = spaces.Discrete(size * size)
         action_space = spaces.Discrete(4)
         horizon = 1000
