@@ -53,9 +53,8 @@ class CliffWalking(Environment):
                                 self._height - (.5 + self._goal[0])])
         self._viewer.square(goal_center, 0, 1, (0, 255, 0))
 
-        start_grid = self.convert_to_grid(self._start, self._width)
-        start_center = np.array([self._height - (.5 + start_grid[1]),
-                                 .5 + start_grid[0]])
+        start_center = np.array([.5 + self._start[1],
+                                 self._height - (.5 + self._goal[0])])
 
         self._viewer.square(start_center, 0, 1, (255, 0, 0))
 
@@ -86,9 +85,9 @@ class CliffWalking(Environment):
 
     def step(self, action):
         state = self.convert_to_grid(self._state, self._width)
-        if 0 < state[1] < self._width - 1:
+        if state[0] > 0 and 0 < state[1] < self._width - 1:
             disturbance = np.random.choice([True, False], p=self.p)
-            action = [1] if disturbance else action
+            action = [0] if disturbance else action
 
         new_state, reward, absorbing, info = self._step(state, action)
         self._state = self.convert_to_int(new_state, self._width)
@@ -98,18 +97,18 @@ class CliffWalking(Environment):
     def _step(self, state, action):
         self._grid_step(state, action)
 
-        reward = - 0.01 / self._width
+        reward = - 0.5 / self._width
         absorbing = False
 
-        if state[0] == self._height - 1 and state[1] > 0:
-            # last row, but not last column
+        if state[0] == 0 and state[1] > 0:
+            # first row, but not last column
             if state[1] < self._width - 1:
-                reward = -10.0
-                # reset state, if falls down the cliff
-                state = self.reset((self._width-1, 0))
+                reward = -100.0
+                # end experiment, if falls down the cliff
+                absorbing = True
             else:
                 # reached the goal
-                reward += 1 + 0.01 / self._width
+                reward += 10 + 0.5 / self._width
                 absorbing = True
         return state, reward, absorbing, {}
 
