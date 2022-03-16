@@ -21,7 +21,6 @@ class MIRL(TD):
         :param learning_rate: the learning rate alpha.
         """
         self.Q = Table(mdp_info.size)
-        self.policy = policy
         self.prior = np.ones(int(mdp_info.size[1])) * (1 / int(mdp_info.size[1]))  # use a uniform prior
         # uses the same equation for beta as g-learning
         self.beta_base = beta_base
