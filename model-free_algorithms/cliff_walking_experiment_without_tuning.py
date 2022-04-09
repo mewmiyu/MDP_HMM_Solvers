@@ -16,31 +16,31 @@ import seaborn as sns
 
 def experiment_cliffwalking(agent_a):
     r_k = list()
-    for k in range(1):
+    for k in range(25):
         # Set the seed
         np.random.seed(k)
 
         # Reinforcement learning experiment
         core = Core(agent_a, env)
         # Train
-        core.learn(n_episodes=1000, n_steps_per_fit=1, render=False)
+        core.learn(n_episodes=5000, n_steps_per_fit=1, render=False)
         # Evaluate results for n_episodes
         dataset_q = core.evaluate(n_episodes=1, render=False)
         # Compute the average objective value
         r = np.mean(compute_J(dataset_q, 1))
         r_k.append(r)
-        value_f = list()
-        summed = 0
-        for i in range(len(agent_a.Q[:, 0])):
-            for m in range(len(agent_a.Q[0, :])):
-                summed += agent_a.Q[i, m] * agent_a.policy(i, m)
-            value_f.append(summed)
-        new_value_f = np.zeros((4, 4))
-        counter = 0
-        for q in range(4):
-            for r in range(4):
-                new_value_f[q][r] = value_f[counter]
-                counter += 1
+        #value_f = list()
+        #summed = 0
+        #for i in range(len(agent_a.Q[:, 0])):
+            #for m in range(len(agent_a.Q[0, :])):
+                #summed += agent_a.Q[i, m] * agent_a.policy(i, m)
+            #value_f.append(summed)
+        #new_value_f = np.zeros((16, 16))
+        #counter = 0
+        #for q in range(16):
+            #for r in range(16):
+                #new_value_f[q][r] = value_f[counter]
+                #counter += 1
         #print(value_f)
         #heatmap = sns.heatmap(pd.DataFrame(new_value_f), vmin=-8, vmax=7)
         #heatmap.set_title('Value Function Heatmap')
@@ -50,7 +50,8 @@ def experiment_cliffwalking(agent_a):
 
 if __name__ == '__main__':
 
-    size = 4
+    width = 12
+    height = 4
 
     steps = list()
     all_reward = list()
@@ -82,14 +83,14 @@ if __name__ == '__main__':
         2,0 2,1 2,2
         Therefore, to get the agent to start at (2,0), start has to be (2,0)
         """
-        env = CliffWalking(size, start=(0, 0), goal=(0, size - 1), p=p)
+        env = CliffWalking(width, height, start=(0, 0), goal=(0, width - 1), p=p)
         # Use an epsilon-greedy policy
         epsilon = Parameter(value=0.1)
         pi = EpsGreedy(epsilon=epsilon)
 
         learning_rate = Parameter(.1 / 10)
 
-        approximator_params = dict(input_shape=2 * size,
+        approximator_params = dict(input_shape=width * height,
                                    output_shape=(env.info.action_space.n,),
                                    n_actions=env.info.action_space.n)
 
@@ -126,9 +127,9 @@ if __name__ == '__main__':
         all_mirl_reward_p90.append(mirl_p90)
 
         sum_reward = 0
-        for j in range(size + 1):
-            sum_reward -= 1 ** j * (0.5 / size)
-        best_reward.append(10 + (0.5 / size) + sum_reward)
+        for j in range(width + 1):
+            sum_reward -= 1 ** j * (0.5 / width)
+        best_reward.append(10 + (0.5 / width) + sum_reward)
 
     steps = np.array(steps)
     plt.plot(steps, np.array(all_reward), marker='o', label='q_median')
@@ -146,8 +147,8 @@ if __name__ == '__main__':
     plt.plot(steps, best_reward, label='best reward')
 
     plt.xlabel('probability of choosing a random action')
-    plt.ylabel('cumulative average reward after 100 episodes')
-    plt.title(f'Cliff-Walking Experiment for Grid-World of size {size}')
+    plt.ylabel('cumulative average reward after 5000 episodes')
+    plt.title(f'Cliff-Walking Experiment for Grid-World of size {width} x {height}')
     plt.yscale('symlog', linthresh=0.01)
     plt.legend()
     plt.show()

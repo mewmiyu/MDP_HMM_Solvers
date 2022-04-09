@@ -7,8 +7,8 @@ from mushroom_rl.utils import spaces
 
 
 class CliffWalking(Environment):
-    def __init__(self, size, start, goal, p):
-        observation_space = spaces.Discrete(size * size)
+    def __init__(self, width, height, start, goal, p):
+        observation_space = spaces.Discrete(width * height)
         action_space = spaces.Discrete(4)
         horizon = 1000
         gamma = 0.9
@@ -18,12 +18,12 @@ class CliffWalking(Environment):
 
         assert not np.array_equal(start, goal)
 
-        assert goal[0] < size and goal[1] < size, \
+        assert goal[0] < height and goal[1] < width, \
             'Goal position not suitable for the grid world dimension.'
 
         self._state = None
-        self._height = size
-        self._width = size
+        self._height = height
+        self._width = width
         self._start = start
         self._goal = goal
 
