@@ -1,5 +1,7 @@
-import numpy as np
 from mushroom_rl.algorithms.value.td import TD
+from mushroom_rl.core import MDPInfo
+from mushroom_rl.policy import Policy
+from mushroom_rl.utils.parameters import Parameter
 from mushroom_rl.utils.table import Table
 from scipy.special import logsumexp
 
@@ -10,12 +12,15 @@ class PsiLearning(TD):
     "Approximate Inference and Stochastic Optimal Control".
     Konrad Rawlik, Marc Toussaint, and Sethu Vijayakumar. 2018.
     """
-    def __init__(self, mdp_info, policy, learning_rate):
+
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter):
         """
-        Initializes the values.
-        :param mdp_info: information about the MDP in the experiment.
-        :param policy: policy that we want the agent to learn.
-        :param learning_rate: the learning rate alpha.
+        Constructor.
+
+        Args:
+            mdp_info: The information about the MDP
+            policy: The policy followed by the agent
+            learning_rate: The learning rate (alpha)
         """
         self.Psi = Table(mdp_info.size)
 
@@ -24,12 +29,14 @@ class PsiLearning(TD):
     def _update(self, state, action, reward, next_state, absorbing):
         """
         Updates the state and action values after interaction with the environment in order to find the optimal
-        value function Psi
-        :param state: current state
-        :param action: current action
-        :param reward: reward of the action in the state
-        :param next_state: next state after executing the action
-        :param absorbing: if it's an absorbing state
+        value function G.
+
+        Args:
+            state: The current state
+            action: The action taken
+            reward: The reward obtained
+            next_state: The next state
+            absorbing: Whether the next state is absorbing or not
         """
         # current value of the state, action pair = Psi(state, action)
         psi_current = self.Psi[state, action]

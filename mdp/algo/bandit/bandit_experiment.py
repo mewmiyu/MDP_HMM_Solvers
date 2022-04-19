@@ -1,7 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from bandit_algorithm import Bandit
+import numpy as np
 
+from Bandit import Bandit
 
 if __name__ == '__main__':
     k = 5

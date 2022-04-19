@@ -1,7 +1,7 @@
-import numpy as np
 from pathlib import Path
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
 from mushroom_rl.environments import *
 from mushroom_rl.utils.callbacks import CollectQ
 from mushroom_rl.utils.parameters import ExponentialParameter
@@ -53,8 +53,8 @@ if __name__ == '__main__':
                     p[i, k, m] = 1.0
                 if p[i, k, m] == 0.2:
                     p[i, k, m] = 0.0
-    #print(p)
-    #p = np.load(path / 'p.npy')
+    # print(p)
+    # p = np.load(path / 'p.npy')
     rew = np.load(path / 'rew.npy')
     mu = np.zeros(p.shape[0])
     mu[0] = 1

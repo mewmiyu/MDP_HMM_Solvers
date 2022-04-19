@@ -1,7 +1,8 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from rpp import RelativePayoffProcedure
-from bandit_algorithm import Bandit
+import numpy as np
+
+from Bandit import Bandit
+from RelativePayoffProcedure import RelativePayoffProcedure
 
 """
 Comparison of the Bandit Algorithm with and without inference.
@@ -40,15 +41,15 @@ if __name__ == '__main__':
                 estimated_q = [x + y for x, y in zip(estimated_q, bdt.Q)]
                 policy = [x + y for x, y in zip(policy, bdt2.log_policy)]
                 avg_best_reward = [x + y for x, y in zip(avg_best_reward, bdt.best_avg_reward)]
-        avg_reward1 = [x/iterations for x in avg_reward1]
-        avg_reward2 = [x/iterations for x in avg_reward2]
-        actual_q = [x/iterations for x in actual_q]
-        estimated_q = [x/iterations for x in estimated_q]
-        policy = [x/iterations for x in policy]
-        avg_best_reward = [x/iterations for x in avg_best_reward]
+        avg_reward1 = [x / iterations for x in avg_reward1]
+        avg_reward2 = [x / iterations for x in avg_reward2]
+        actual_q = [x / iterations for x in actual_q]
+        estimated_q = [x / iterations for x in estimated_q]
+        policy = [x / iterations for x in policy]
+        avg_best_reward = [x / iterations for x in avg_best_reward]
 
         estimated_q2 = [(np.exp(alpha * actual_q[x] * policy[x])) / sum(actual_q) for x in range(len(actual_q))]
-        #estimated_q2 = [np.log(estimated_q2[i]) for i in range(len(estimated_q2))]
+        # estimated_q2 = [np.log(estimated_q2[i]) for i in range(len(estimated_q2))]
 
         print("Actual average value-action"f'{actual_q}')
         print("Estimated average value-action (greedy)"f'{estimated_q}')

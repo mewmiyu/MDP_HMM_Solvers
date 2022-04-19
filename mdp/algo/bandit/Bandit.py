@@ -1,20 +1,22 @@
 import numpy as np
 
-"""
-Bandit algorithm 
-"Reinforcement Learning"
-Richard S. Sutton et Andrew G. Barto. 2018
-"""
-
 
 class Bandit:
-    def __init__(self, k=10, epsilon=.3, action_values=None, comparison=False):
-        """
-        Initializes the values for the Bandit algorithm
+    """
+    Bandit algorithm.
+    "Reinforcement Learning"
+    Richard S. Sutton et Andrew G. Barto. 2018
+    """
 
-        :param k: amount of actions
-        :param epsilon: value for epsilon-greedy selection
-        :param action_values: true action values q*(a)
+    def __init__(self, k: int = 10, epsilon: float = .3, action_values=None,
+                 comparison: bool = False):
+        """
+        Constructor.
+
+        Args:
+            k: The amount of actions
+            epsilon: The value for epsilon-greedy selection
+            action_values: The true action values q*(a)
         """
         self.k = k
         self.Q = np.zeros(k)
@@ -28,12 +30,15 @@ class Bandit:
         self.avg_reward = []  # count the average reward for every step
         self.best_avg_reward = []  # average reward, when taking the best action for comparison
 
-    def bandit(self, a):
+    def bandit(self, a: int):
         """
-        Returns the corresponding reward to an action
+        Returns the corresponding reward to an action.
 
-        :param a: action that should be taken
-        :return: the corresponding reward
+        Args:
+            a: The action that should be taken
+
+        Returns:
+        The corresponding reward to the action.
         """
         if self.comparison:
             # takes the normalized action-value of the state as reward for the comparison
@@ -61,13 +66,14 @@ class Bandit:
             # average reward, when taking the best action for comparison
             best_action = np.argmax(self.action_values)
             self.best_avg_reward.append((self.action_values[best_action] - np.max(self.action_values))
-                                    / np.abs(np.min(self.action_values)))
+                                        / np.abs(np.min(self.action_values)))
 
     def choose_action(self):
         """
-        Chooses action according to the epsilon-greedy policy
+        Chooses action according to the epsilon-greedy policy.
 
-        :return: the corresponding action
+        Returns:
+            The corresponding action
         """
         if np.random.uniform(0, 1) <= self.epsilon:  # choose a random value with p(epsilon)
             action = np.random.choice(self.actions)
@@ -75,11 +81,12 @@ class Bandit:
             action = np.argmax(self.Q)
         return action
 
-    def play(self, n):
+    def play(self, n: int):
         """
-        Chooses one action n times and updates the rewards and action-values depending on the chosen action
+        Chooses one action n times and updates the rewards and action-values depending on the chosen action.
 
-        :param n: amount of steps
+        Args:
+            n: The amount of steps
         """
         for _ in range(n):
             action = self.choose_action()
