@@ -1,16 +1,20 @@
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
 
 
 def policy_iteration(transition, reward, gamma, theta):
     """
     Computes the optimal value function and policy by using policy iteration
 
-    :param theta: small positive number determining6:the accuracy of estimation
-    :param transition: transition matrix
-    :param reward: reward matrix
-    :param gamma: discount factor
-    :return: optimal value function and policy
+    Args:
+        transition: matrix of transition probabilities
+        reward: vector of rewards
+        gamma: discount factor
+        theta: small positive number determining6:the accuracy of estimation
+
+    Returns:
+        The optimal value function and policy
     """
     n_s, n_a, _ = transition.shape
 

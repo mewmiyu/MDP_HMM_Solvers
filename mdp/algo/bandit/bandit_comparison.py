@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Bandit import Bandit
-from RelativePayoffProcedure import RelativePayoffProcedure
+from bandit import Bandit
+from rpp import RelativePayoffProcedure
 
 """
 Comparison of the Bandit Algorithm with and without inference.

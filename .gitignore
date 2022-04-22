@@ -92,7 +92,6 @@ ENV
 ### VirtualEnv template
 # Virtualenv
 # httpiamzed.com20090507a-primer-on-virtualenv
-.Python
 [Bb]in
 [Ii]nclude
 [Ll]ib
@@ -153,5 +152,5 @@ fabric.properties
 # Visual Studio code
 .vscode
 
-# Environment variables
-.env
+# numpy
+*.npy

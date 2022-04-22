@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Bandit import Bandit
+from bandit import Bandit
 
 if __name__ == '__main__':
     k = 5

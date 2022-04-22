@@ -51,7 +51,8 @@ class Bandit:
         """
         Updates the action-value of a chosen action and the corresponding reward
 
-        :param a: chosen action
+        Args:
+            a: The action that should be taken
         """
         reward = self.bandit(a)  # select an action
         self.N[a] = self.N[a] + 1

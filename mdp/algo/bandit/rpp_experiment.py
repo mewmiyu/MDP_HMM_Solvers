@@ -1,8 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Bandit import Bandit
-from RelativePayoffProcedure import RelativePayoffProcedure
+from bandit import Bandit
+from rpp import RelativePayoffProcedure
 
 if __name__ == '__main__':
     k = 5

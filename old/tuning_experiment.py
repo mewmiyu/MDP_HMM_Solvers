@@ -8,7 +8,7 @@ Source: https://mushroomrl.readthedocs.io/en/latest/source/tutorials/tutorials.0
 
 if __name__ == '__main__':
     from mushroom_rl.core import Core
-    from g_learning import GLearning
+    from mdp.algo.model_free.g_learning import GLearning
     from mushroom_rl.policy import EpsGreedy
     from mushroom_rl.utils.parameters import Parameter
     from mushroom_rl.utils.dataset import compute_J

@@ -49,8 +49,11 @@ class RelativePayoffProcedure:
         (The rewards NEED to be negative and between 0 and -1!!!)
         Returns the corresponding reward to an action
 
-        :param a: action that should be taken
-        :return: the corresponding reward
+        Args:
+            a: The action that was chosen.
+
+        Returns:
+            The corresponding reward.
         """
         return self.action_values[a]
 

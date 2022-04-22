@@ -8,18 +8,18 @@ from mushroom_rl.policy import EpsGreedy
 from mushroom_rl.utils.dataset import compute_J
 from mushroom_rl.utils.parameters import Parameter
 
-from mdp.algo.model_free.env.CliffWalking import CliffWalking
-from GLearning import GLearning
-from mdp.experiment.Experiment import Experiment
-from MIRL import MIRL
-from PsiLearning import PsiLearning
+from mdp.algo.model_free.env.deep_sea import DeepSea
+from mdp.algo.model_free.g_learning import GLearning
+from mdp.algo.model_free.mirl import MIRL
+from mdp.algo.model_free.psi_learning import PsiLearning
+from mdp.experiment.model_free import Experiment
 
 
-def experiment_cliffwalking(agent: Agent, env: Environment, n_episodes: int, k: int) -> List[np.ndarray]:
-    r_k = list()
-    for k_i in range(k):
+def experiment_deepsea(agent: Agent, env: Environment, n_episodes: int, k: int) -> List[np.ndarray]:
+    reward_k = list()
+    for seed in range(k):
         # Set the seed
-        np.random.seed(k_i)
+        np.random.seed(seed)
 
         # Reinforcement learning experiment
         core = Core(agent, env)
@@ -29,33 +29,16 @@ def experiment_cliffwalking(agent: Agent, env: Environment, n_episodes: int, k: 
         dataset_q = core.evaluate(n_episodes=1, render=False, quiet=True)
         # Compute the average objective value
         r = np.mean(compute_J(dataset_q, 1))
-        r_k.append(r)
-        # value_f = list()
-        # summed = 0
-        # for i in range(len(agent_a.Q[:, 0])):
-        # for m in range(len(agent_a.Q[0, :])):
-        # summed += agent_a.Q[i, m] * agent_a.policy(i, m)
-        # value_f.append(summed)
-        # new_value_f = np.zeros((16, 16))
-        # counter = 0
-        # for q in range(16):
-        # for r in range(16):
-        # new_value_f[q][r] = value_f[counter]
-        # counter += 1
-        # print(value_f)
-        # heatmap = sns.heatmap(pd.DataFrame(new_value_f), vmin=-8, vmax=7)
-        # heatmap.set_title('Value Function Heatmap')
-        # plt.show()
-    return r_k
+        reward_k.append(r)
+    return reward_k
 
 
 def run():
-    width = 12
-    height = 4
+    max_steps = 3
     steps = list()
 
-    k = 25
-    n_episodes = 5
+    k = 2
+    n_episodes = 100
 
     agents = dict(
         q=QLearning,
@@ -79,18 +62,13 @@ def run():
 
     best_reward = list()
 
-    for p in [0, 0.1, 0.2]:
-        steps.append(p)
+    for exponent in range(1, max_steps + 1):
+        size = np.power(2, exponent)
+        steps.append(size)
+        print('Step: {}, size: {}'.format(exponent, size))
 
         # Create the grid environment
-        """
-        Basically the parameters are plotted like this:
-        0,0 0,1 0,2 
-        1,0 1,1 1,2
-        2,0 2,1 2,2
-        Therefore, to get the agent to start at (2,0), start has to be (2,0)
-        """
-        env = CliffWalking(width, height, start=(0, 0), goal=(0, width - 1), p=p)
+        env = DeepSea(size, start=(0, 0), goal=(size - 1, size - 1))
 
         # Use an epsilon-greedy policy
         epsilon = .1
@@ -100,7 +78,7 @@ def run():
 
         for key, value in agents.items():
             agent = value(env.info, pi, learning_rate=learning_rate)
-            reward_k = experiment_cliffwalking(agent, env, n_episodes, k)
+            reward_k = experiment_deepsea(agent, env, n_episodes, k)
             # q_p10, q_p50, q_p90
             q_p = np.percentile(reward_k, q)
 
@@ -109,9 +87,9 @@ def run():
                 r_i.append(q_pi)
 
         sum_reward = 0
-        for j in range(width + 1):
-            sum_reward -= 1 ** j * (0.5 / width)
-        best_reward.append(10 + (0.5 / width) + sum_reward)
+        for j in range(size - 2):
+            sum_reward -= 1 ** j * (0.01 / size)
+        best_reward.append(1 + (0.01 / size) + sum_reward)
 
     steps = np.array(steps)
     for label, marker, alpha, key in zip(labels, markers, alphas, agents.keys()):
@@ -119,12 +97,10 @@ def run():
         plt.plot(steps, np.array(q_p50), marker=marker, label=label[0])
         plt.fill_between(steps, q_p10, q_p90, label=label[1], alpha=alpha)
 
-    plt.plot(steps, best_reward, label='best reward')
-
-    plt.xlabel('Probability of choosing a random action')
-    plt.ylabel(f'Cumulative average reward after {n_episodes} episodes')
-    plt.title(f'Cliff-Walking Experiment for Grid-World of size {width} x {height}')
-    plt.yscale('Symlog', linthresh=0.01)
+    plt.plot(steps, best_reward, label='Best reward')
+    plt.xlabel('Size of gridworld')
+    plt.ylabel('Cumulative average reward after 100 episodes')
+    plt.title('Deep Sea Experiment - Serial')
     plt.legend()
     plt.show()
 
