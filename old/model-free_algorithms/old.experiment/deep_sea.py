@@ -17,7 +17,7 @@ from mdp.experiment.model_free import ExperimentParser, Experiment
 
 class DeepSeaParser(ExperimentParser):
     """
-    Parses the command line arguments for a deep sea experiment.
+    Parses the command line arguments for a deep sea old.experiment.
     """
 
     def __init__(self):
@@ -27,7 +27,7 @@ class DeepSeaParser(ExperimentParser):
 
 class DeepSeaExperiment(Experiment):
     """
-    The Deep Sea experiment.
+    The Deep Sea old.experiment.
 
     Parameters:
         DeepSeaExperiment.AGENTS: A list of available agents

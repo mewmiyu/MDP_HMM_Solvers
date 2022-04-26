@@ -17,7 +17,7 @@ from mdp.experiment.model_free import ExperimentParser, Experiment
 
 class CliffWalkingParser(ExperimentParser):
     """
-    Parses the command line arguments for a Cliff Walking experiment.
+    Parses the command line arguments for a Cliff Walking old.experiment.
     """
 
     def __init__(self):
@@ -30,7 +30,7 @@ class CliffWalkingParser(ExperimentParser):
 
 class CliffWalkingExperiment(Experiment):
     """
-    The Cliff Walking experiment.
+    The Cliff Walking old.experiment.
 
     Parameters:
         CliffWalkingExperiment.AGENTS: A list of available agents
