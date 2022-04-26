@@ -1,22 +1,31 @@
 from typing import Union, List, Tuple
 
 import numpy as np
-from mushroom_rl.core import Agent, MDPInfo
-from mushroom_rl.policy import Policy
+from mushroom_rl.core import MDPInfo
+from mushroom_rl.algorithms.value.td import TD
+from mushroom_rl.policy import TDPolicy
 from mushroom_rl.utils.parameters import Parameter
 from mushroom_rl.utils.table import Table
 from scipy.optimize import minimize
 
 
-class REPS(Agent):
+def dual_function(eta_array, *args):
+    eta = eta_array.item()
+    return eta * 0.001 \
+           + eta * np.log(np.mean([np.exp(error / eta) for error in args[0][0]]))
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, epsilon: Union[float, Parameter]):
+
+class REPS(TD):
+
+    def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter):
         self.Q = Table(mdp_info.size)
-        self.epsilon = epsilon
-        super().__init__(mdp_info, policy, self.Q)
+        self.p = Table(mdp_info.size)
+        policy.set_q(self.Q)
+        self.errors = list()
+        super().__init__(mdp_info, policy, self.p, learning_rate)
 
     @staticmethod
-    def _parse(dataset) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    def _parse(dataset) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool]:
         """
         Parse a sample from a dataset.
 
@@ -39,22 +48,24 @@ class REPS(Agent):
     def fit(self, dataset: List[List[np.ndarray]]):
         assert len(dataset) == 1
         state, action, reward, next_state, absorbing = self._parse(dataset)
-        self._update(state, action, reward, next_state)
+        self._update(state, action, reward, next_state, absorbing)
 
-    def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray):
+    def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
+                absorbing: bool):
         # Bellman error delta_v^i = r_n + max_a Q(s_n', a) - max_a Q(s_n, a)
-        error: np.ndarray = reward + np.max(self.Q[next_state, :]) - np.max(self.Q[state, :])
+        error: np.ndarray = reward + np.max(self.p[next_state, :]) - np.max(self.p[state, :])
+        self.Q[state, action] = reward + np.max(self.Q[next_state, :]) - np.max(self.Q[state, :])
+        self.errors.append(error)
 
-        eta_start = np.ones(1)  # Must be larger than 0
-        # eta and v are obtained by minimizing the dual function
-        result = minimize(
-            fun=self.dual_function,
-            x0=eta_start,  # Initial guess
-            args=[error],  # Additional arguments for the function
-        )
-        eta_optimal = result.x.item()
-
-    def dual_function(self, eta_array, *args):
-        eta = eta_array.item()
-        error: np.ndarray = args
-        return eta * self.epsilon + eta * np.log(np.exp(error / eta))
+        if absorbing:
+            eta_start = np.ones(1)  # Must be larger than 0
+            # eta and v are obtained by minimizing the dual function
+            result = minimize(
+                fun=dual_function,
+                x0=eta_start,  # Initial guess
+                args=[self.errors],  # Additional arguments for the function
+            )
+            eta_optimal = result.x.item()
+            #eta_optimal = self.dual_function(eta_start, self.errors, state, action)
+            self.p[state, action] = np.exp((1 / eta_optimal) * np.max(self.errors)) / np.sum(
+                self.Q[state, :] * np.exp((1 / eta_optimal) * np.max(self.errors)))
