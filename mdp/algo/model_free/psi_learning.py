@@ -13,7 +13,8 @@ class PsiLearning(TD):
     Konrad Rawlik, Marc Toussaint, and Sethu Vijayakumar. 2018.
     """
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter):
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter,
+                 beta_linear: float = 0.01):
         """
         Constructor.
 
@@ -21,8 +22,12 @@ class PsiLearning(TD):
             mdp_info: The information about the MDP
             policy: The policy followed by the agent
             learning_rate: The learning rate (alpha)
+            beta_linear: The constant for the linear inverse temperature parameter
         """
         self.Psi = Table(mdp_info.size)
+
+        self.beta_linear = beta_linear
+        self.counter = 0  # to count the time steps in the update
 
         super().__init__(mdp_info, policy, self.Psi, learning_rate)
 
@@ -38,6 +43,11 @@ class PsiLearning(TD):
             next_state: The next state
             absorbing: Whether the next state is absorbing or not
         """
+        # counter representing time steps
+        self.counter += 1
+        # beta = k * t, linear as learning increases
+        self.beta = self.beta_linear * self.counter
+
         # current value of the state, action pair = Psi(state, action)
         psi_current = self.Psi[state, action]
 
@@ -46,5 +56,7 @@ class PsiLearning(TD):
         mean_psi_next = logsumexp(self.Psi[next_state, :]) if not absorbing else 0.
 
         # update rule for Psi(state, action)
-        # Psi(state, action) = psi_current + alpha * (reward + gamma * mean_psi_next - mean_psi_current)
-        self.Psi[state, action] = psi_current + (reward + self.mdp_info.gamma * mean_psi_next - mean_psi_current)
+        # Psi(state, action) = psi_current + alpha * (reward/beta + gamma * mean_psi_next - mean_psi_current)
+        self.Psi[state, action] = psi_current + (reward/self.beta +
+                                                 self.mdp_info.gamma * mean_psi_next
+                                                 - mean_psi_current)
