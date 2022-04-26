@@ -15,8 +15,7 @@ class GLearning(TD):
     Roy Fox, Ari Pakman, Naftali Tishby. 2017.
     """
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, beta_base: float = 0.1,
-                 beta_linear: float = 0.00000001):
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, beta_linear: float = 0.00000001):
         """
         Constructor.
 
@@ -24,11 +23,9 @@ class GLearning(TD):
             mdp_info: The information about the MDP
             policy: The policy followed by the agent
             learning_rate: The learning rate (alpha)
-            beta_base: The base inverse temperature parameter
             beta_linear: The constant for the linear inverse temperature parameter
         """
         self.G = Table(mdp_info.size)
-        self.beta_base = beta_base
         self.beta_linear = beta_linear
         self.n_actions = int(mdp_info.size[1])  # use a uniform prior 1/number_of_actions
         self.counter = 0  # to count the time steps in the update
