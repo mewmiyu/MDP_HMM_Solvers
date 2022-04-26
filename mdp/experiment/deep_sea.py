@@ -11,6 +11,7 @@ from mdp.algo.model_free.env.deep_sea import DeepSea
 from mdp.algo.model_free.g_learning import GLearning
 from mdp.algo.model_free.mirl import MIRL
 from mdp.algo.model_free.psi_learning import PsiLearning
+from mdp.algo.model_free.reps import REPS
 from mdp.experiment.model_free import ExperimentParser, Experiment
 
 
@@ -37,7 +38,8 @@ class DeepSeaExperiment(Experiment):
         q=QLearning,
         psi=PsiLearning,
         g=GLearning,
-        mirl=MIRL
+        mirl=MIRL,
+        reps=REPS
     )
 
     Q: List[int] = [10, 50, 90]

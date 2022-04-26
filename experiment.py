@@ -5,6 +5,7 @@ from mushroom_rl.algorithms.value import QLearning
 from mdp.algo.model_free.g_learning import GLearning
 from mdp.algo.model_free.mirl import MIRL
 from mdp.algo.model_free.psi_learning import PsiLearning
+from mdp.algo.model_free.reps import REPS
 from mdp.experiment.cliff_walking import CliffWalkingExperiment
 from mdp.experiment.deep_sea import DeepSeaExperiment
 from mdp.experiment.model_free import Experiment
@@ -33,7 +34,7 @@ if __name__ == '__main__':
         ),
         dict(
             n_episodes=1000,
-            k=25,
+            k=2,
             width=12,
             height=4,
             p=[0, .1, .2]
@@ -43,15 +44,15 @@ if __name__ == '__main__':
         dict(
             title='Deep Sea',
             experiment=DeepSeaExperiment,
-            alphas=[.3, .25, .2, .15],
-            markers=['o', '^', '>', '<'],
+            alphas=[.3, .25, .2, .15, 0.1],
+            markers=['o', '^', '>', '<', 'v'],
             plot_args=[experiments_args[0]['max_steps'], experiments_args[0]['n_episodes']],
         ),
         dict(
             title='Cliff Walking',
             experiment=CliffWalkingExperiment,
-            alphas=[.3, .25, .2, .15],
-            markers=['o', '^', '>', '<'],
+            alphas=[.3, .25, .2, .15, 0.1],
+            markers=['o', '^', '>', '<', 'v'],
             plot_args=[experiments_args[1]['width'], experiments_args[1]['height'], experiments_args[1]['n_episodes'],
                        experiments_args[1]['p']],
         )
@@ -67,7 +68,8 @@ if __name__ == '__main__':
         dict(title='Q Learning', agent=QLearning),
         dict(title='Psi Learning', agent=PsiLearning),
         dict(title='G Learning', agent=GLearning),
-        dict(title='MIRL', agent=MIRL)
+        dict(title='MIRL', agent=MIRL),
+        dict(title='REPS', agent=REPS)
     ]
 
     plots = [

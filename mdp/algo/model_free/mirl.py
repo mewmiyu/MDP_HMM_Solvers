@@ -15,8 +15,8 @@ class MIRL(TD):
         Jordi Grau-Moya, Felix Leibfried and Peter Vrancx. 2019.
     """
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, beta_base: float = 0.1,
-                 beta_linear: float = 1 / np.power(10, 4)):
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, alpha_prior: float = 0.0002,
+                 beta_linear: float = 0.00000001):
         """
         Constructor.
 
@@ -28,10 +28,11 @@ class MIRL(TD):
             beta_linear: The constant for the linear inverse temperature parameter
         """
         self.Q = Table(mdp_info.size)
-        self.prior = np.ones((int(mdp_info.size[0]), int(mdp_info.size[1]))) \
-                     * (1 / int(mdp_info.size[1]))  # use a uniform prior
+        self.prior = np.ones(int(mdp_info.size[1])) * (1 / int(mdp_info.size[1]))  # use a uniform prior
+
+        self.n_actions = int(mdp_info.size[1])  # use a uniform prior 1/number_of_actions
         # uses the same equation for beta as g-learning
-        self.beta_base = beta_base
+        self.alpha_prior = alpha_prior
         self.beta_linear = beta_linear
         self.counter = 0  # to count the time steps in the update
 
@@ -59,14 +60,15 @@ class MIRL(TD):
         q_current = self.Q[state, action]
 
         # update the prior
-        # p_i+1(a|s) = (1-alpha)p_i(a|s) + alpha * policy_i(a|s_i)
-        self.prior[state, action] = (1 - self._alpha(state, action)) * self.prior[state, action] \
-                             + self._alpha(state, action) * self.policy(state, action)
+        # p_i+1(.) = (1-alpha)p_i(.) + alpha * policy_i(.|s_i)
+        self.prior = (1 - self.alpha_prior) * self.prior[:] \
+                             + self.alpha_prior * np.array([self.policy(state, a) for a in range(4)])
 
         # compute the empirical soft-operator
         # r(s, a) + gamma/ beta logsumexp(log(prior(a') + exp(beta Q(s,a'))))
-        t_emp = reward + (self.mdp_info.gamma / self.beta) * \
-                logsumexp(np.log(self.prior[state, :]) + self.beta * self.Q[next_state, :]) if not absorbing else 0.
+        q_next = logsumexp(np.log(self.prior) - self.beta * self.Q[next_state, :]) if not absorbing else 0.
+
+        t_emp = reward - (self.mdp_info.gamma / self.beta) * q_next
 
         # update rule for G(state, action)
         # Q(state, action) = q_current + alpha * (t_emp - q_current)
