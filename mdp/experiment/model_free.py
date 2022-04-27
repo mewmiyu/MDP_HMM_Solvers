@@ -23,6 +23,7 @@ class Experiment:
 
     Attributes:
         Experiment.AGENTS: A list of all agents
+        Experiment.AGENTS: A list of all agents name
         Experiment.Q: A list of q values for the percentile. The values must be between 0 and 100 inclusive
     """
 
@@ -32,6 +33,14 @@ class Experiment:
         g=GLearning,
         mirl=MIRL,
         reps=REPS
+    )
+
+    AGENTS_NAME: Dict[str, str] = dict(
+        q='Q Learning',
+        psi='Psi Learning',
+        g='G Learning',
+        mirl='MIRL',
+        reps='REPS'
     )
 
     Q: List[int] = [10, 50, 90]

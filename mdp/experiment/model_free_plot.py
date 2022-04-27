@@ -5,6 +5,8 @@ from typing import List, Any
 import numpy as np
 from matplotlib import pyplot as plt
 
+from mdp.experiment.model_free import Experiment
+
 
 class Plotter:
     """
@@ -29,7 +31,7 @@ class Plotter:
             while os.path.isdir(f'{new_path}{i}'):
                 i += 1
             self.path = f'{new_path}{i}'
-        elif not (path == ''):
+        elif path != '':
             self.path = f'{self.DIR_OUTPUT}{path}/'
         else:
             self.path = f'{self.DIR_OUTPUT}{path}'
@@ -62,6 +64,32 @@ class Plotter:
         """
         raise NotImplementedError
 
+    def filenames(self) -> List[str]:
+        """
+        Returns all filenames in the output directory.
+
+        Returns:
+            A list of all filenames in the output directory.
+        """
+        filenames = []
+        for file in os.listdir(self.path):
+            filename = os.path.join(self.path, file)
+            if os.path.isfile(filename):
+                filenames.append(filename)
+        return filenames
+
+    def agent_name(self, filename: str) -> str:
+        """
+        Returns the name of the agent.
+
+        Args:
+            filename: The filename to get the name of the agent from
+
+        Returns:
+            The name of the agent
+        """
+        return filename.split('_')[-1].split('.')[0]
+
     def show(self):
         """
         Shows the plots.
@@ -88,14 +116,14 @@ class AgentsPlotter(Plotter):
         markers: List[str] = kwargs['plot_args']['markers']
         steps: list = kwargs['steps']
         best_reward: list = kwargs['best_reward']
-        titles: List[str] = kwargs['titles']
 
         steps = np.array(steps)
 
-        for filename, title, alpha, marker in zip(filenames, titles, alphas, markers):
+        for filename, alpha, marker in zip(filenames, alphas, markers):
             q_p10, q_p50, q_p90 = np.load(filename)
-
-            labels = list(map(lambda x: f'{title}_{x}', ['median', '10:90']))
+            agent_name = self.agent_name(filename)
+            labels = list(map(lambda x: f'{agent_name}_{x}',
+                              ['median', '10:90']))
             plt.plot(steps, q_p50, marker=marker, label=labels[0])
             plt.fill_between(steps, q_p10, q_p90, label=labels[1], alpha=alpha)
 
@@ -113,6 +141,8 @@ class AgentsDeepSeaPlotter(AgentsPlotter):
         plt.xlabel('Size of gridworld')
         plt.ylabel(f'Cumulative average reward after {n_episodes} episodes')
         plt.title('Deep Sea Experiment')
+        plt.tight_layout()
+        plt.grid(True)
 
         best_reward = list()
         steps = list()
@@ -143,6 +173,8 @@ class AgentsCliffWalkingPlotter(AgentsPlotter):
         plt.ylabel(f'Cumulative average reward after {n_episodes} episodes')
         plt.title(f'Cliff-Walking Experiment for Grid-World of size {width} x {height}')
         plt.yscale('Symlog', linthresh=0.01)
+        plt.tight_layout()
+        plt.grid(True)
 
         best_reward = list()
         for _ in kwargs['steps']:
@@ -154,7 +186,7 @@ class AgentsCliffWalkingPlotter(AgentsPlotter):
         super().plot(filenames, **kwargs)
 
 
-class AlphasPlotter(Plotter):
+class BetasPlotter(Plotter):
     """
     Allows to plot a sequence of alphas
     """
@@ -169,22 +201,73 @@ class AlphasPlotter(Plotter):
         super().__init__(path)
 
     def plot(self, filenames: List[str], **kwargs: Any):
-        agent_name: str = kwargs['agent_name']
-        alphas: List[float] = kwargs['alphas']
-        markers: List[str] = kwargs['markers']
+        alphas: List[float] = kwargs['plot_args']['alphas']
+        markers: List[str] = kwargs['plot_args']['markers']
+        betas: List[float] = kwargs['plot_args']['betas']
         steps: list = kwargs['steps']
         best_reward: list = kwargs['best_reward']
-        experiment_name: str = kwargs['experiment_name']
 
-        for filename, alpha, marker in zip(filenames, alphas, markers):
+        for filename, marker, beta, alpha in zip(filenames, markers, betas, alphas):
             q_p10, q_p50, q_p90 = np.load(filename)
-            labels = list(map(lambda x: f'{agent_name}_{x}', ['median', '10:90']))
-            plt.plot(steps, q_p50, marker=marker, label=labels[0])
-            plt.fill_between(steps, q_p10, q_p90, label=labels[1], alpha=alpha)
+            plt.plot(steps, q_p50, marker=marker, label='Beta: {}'.format(beta))
+            plt.fill_between(steps, q_p10, q_p90,  label='Beta: {}', alpha=alpha)
 
         plt.plot(steps, best_reward, label='Best reward')
-        plt.xlabel(kwargs['xlabel'])
-        plt.ylabel(kwargs['ylabel'])
-        plt.title(kwargs['title'])
         plt.legend()
-        plt.show()
+
+
+class BetasDeepSeaPlotter(BetasPlotter):
+    """
+    Deep Sea experiment plotter.
+    """
+
+    def plot(self, filenames: List[str], **kwargs: Any):
+        n_episodes: int = kwargs['n_episodes']
+        plt.xlabel('Size of gridworld')
+        plt.ylabel(f'Cumulative average reward after {n_episodes} episodes')
+        agent_name: str = Experiment.AGENTS_NAME[self.agent_name(filenames[0])]
+        plt.title(f'Deep Sea Experiment - {agent_name}')
+        plt.tight_layout()
+        plt.grid(True)
+
+        best_reward = list()
+        steps = list()
+        for exponent in kwargs['steps']:
+            size = np.power(2, exponent)
+            steps.append(size)
+
+            sum_reward = 0
+            for j in range(size - 2):
+                sum_reward -= 1 ** j * (0.01 / size)
+            best_reward.append(1 + (0.01 / size) + sum_reward)
+
+        kwargs['best_reward'] = best_reward
+        kwargs['steps'] = steps
+        super().plot(filenames, **kwargs)
+
+
+class BetasCliffWalkingPlotter(BetasPlotter):
+    """
+    Cliff Walking experiment plotter.
+    """
+
+    def plot(self, filenames: List[str], **kwargs: Any):
+        n_episodes: int = kwargs['n_episodes']
+        width: int = kwargs['width']
+        height: int = kwargs['height']
+        plt.xlabel('Probability of choosing a random action')
+        plt.ylabel(f'Cumulative average reward after {n_episodes} episodes')
+        agent_name: str = Experiment.AGENTS_NAME[self.agent_name(filenames[0])]
+        plt.title(f'Cliff-Walking Experiment for Grid-World of size {width} x {height} - {agent_name}')
+        plt.yscale('Symlog', linthresh=0.01)
+        plt.tight_layout()
+        plt.grid(True)
+
+        best_reward = list()
+        for _ in kwargs['steps']:
+            sum_reward = 0
+            for j in range(width + 1):
+                sum_reward -= 1 ** j * (0.5 / width)
+            best_reward.append(10 + (0.5 / width) + sum_reward)
+        kwargs['best_reward'] = best_reward
+        super().plot(filenames, **kwargs)
