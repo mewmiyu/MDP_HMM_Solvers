@@ -14,7 +14,7 @@ class PsiLearning(TD):
     """
 
     def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter,
-                 beta_linear: float = 0.01):
+                 beta_linear: float = 1):
         """
         Constructor.
 

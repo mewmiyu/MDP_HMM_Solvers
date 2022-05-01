@@ -209,8 +209,8 @@ class BetasPlotter(Plotter):
 
         for filename, marker, beta, alpha in zip(filenames, markers, betas, alphas):
             q_p10, q_p50, q_p90 = np.load(filename)
-            plt.plot(steps, q_p50, marker=marker, label='Beta: {}'.format(beta))
-            plt.fill_between(steps, q_p10, q_p90,  label='Beta: {}', alpha=alpha)
+            plt.plot(steps, q_p50, marker=marker, label='Betas: {}'.format(beta))
+            plt.fill_between(steps, q_p10, q_p90, alpha=alpha)
 
         plt.plot(steps, best_reward, label='Best reward')
         plt.legend()
