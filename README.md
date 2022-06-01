@@ -36,11 +36,12 @@ https://github.com/MushroomRL/mushroom-rl
 ```
 
 Additionally, to run this project, install the requirements as specified
-in ```requirements.txt```. For that you will need PyTorch and Anaconda/Miniconda.
+in requirements.txt. For that you will need PyTorch and Anaconda/Miniconda.
 
 With IDE, such as Pycharm, you can create a conda environment by
 using the tutorial
-```https://www.jetbrains.com/help/pycharm/conda-support-creating-conda-virtual-environment.html#569eec8d
+```
+https://www.jetbrains.com/help/pycharm/conda-support-creating-conda-virtual-environment.html#569eec8d
 ```
 
 Then you can install pytorch with
