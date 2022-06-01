@@ -18,7 +18,7 @@ from mdp.algo.model_free.reps import REPS
 
 class Experiment:
     """
-    Allows to run an experiment with a given agent and environment. The result can be saved in a file and plotted as
+    Allows to run an experiment_oldbeta with a given agent and environment. The result can be saved in a file and plotted as
     one plot later.
 
     Attributes:
@@ -51,7 +51,7 @@ class Experiment:
 
         Args:
             agent_constructor: The agent to use
-            **kwargs: Arguments that will be used when running the experiment
+            **kwargs: Arguments that will be used when running the experiment_oldbeta
         """
         self.agent_constructor = agent_constructor
         self.n_episodes = kwargs.get('n_episodes', 100)
@@ -61,7 +61,7 @@ class Experiment:
 
     def run(self) -> List[List[np.ndarray]]:
         """
-        Runs the experiment.
+        Runs the experiment_oldbeta.
 
         Returns:
             A list of lists of rewards.
@@ -127,7 +127,7 @@ class DeepSeaExperiment(Experiment):
 
         Args:
             agent_constructor: The agent to use
-            **kwargs: Arguments that will be used when running the experiment
+            **kwargs: Arguments that will be used when running the experiment_oldbeta
         """
         super().__init__(agent_constructor, **kwargs)
         self.max_steps = kwargs.get('max_steps', 10)
@@ -138,7 +138,7 @@ class DeepSeaExperiment(Experiment):
         for _ in self.Q:
             q_ps.append(list())
 
-        # Run the experiment
+        # Run the experiment_oldbeta
         for exponent in range(1, self.max_steps + 1):
             size = np.power(2, exponent)
 
@@ -165,7 +165,7 @@ class CliffWalkingExperiment(Experiment):
 
         Args:
             agent_constructor: The agent to use
-            **kwargs: Arguments that will be used when running the experiment
+            **kwargs: Arguments that will be used when running the experiment_oldbeta
         """
         super().__init__(agent_constructor, **kwargs)
         self.width = kwargs.get('width', 12)
@@ -178,7 +178,7 @@ class CliffWalkingExperiment(Experiment):
         for _ in self.Q:
             q_ps.append(list())
 
-        # Run the experiment
+        # Run the experiment_oldbeta
         for p_i in self.p:
             # Use an epsilon-greedy policy
             pi = EpsGreedy(epsilon=self.epsilon)

@@ -104,18 +104,18 @@ class CliffWalking(Environment):
     def _step(self, state: np.ndarray, action: np.ndarray):
         self._grid_step(state, action)
 
-        reward = - 0.5 / self._width
+        reward = - 0.05 / self._width
         absorbing = False
 
         if state[0] == 0 and state[1] > 0:
             # first row, but not last column
             if state[1] < self._width - 1:
-                reward = -100.0
+                reward = -10.0
                 # end old, if falls down the cliff
                 absorbing = True
             else:
                 # reached the goal
-                reward += 10 + 0.5 / self._width
+                reward += 1 + 0.05 / self._width
                 absorbing = True
         return state, reward, absorbing, {}
 

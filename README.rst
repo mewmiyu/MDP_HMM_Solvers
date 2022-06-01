@@ -8,6 +8,3 @@ With IDE such as Pycharm you can create a conda environment
 Then you can install pytorch with
  conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
 
-Bandit:
-- k-armed Bandit (RL)
-- k-armed Bandit w/ inference (similar to RPP, Dayan)

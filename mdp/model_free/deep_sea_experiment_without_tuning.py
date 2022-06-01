@@ -34,10 +34,10 @@ def experiment_deepsea(agent: Agent, env: Environment, n_episodes: int, k: int) 
 
 
 def run():
-    max_steps = 3
+    max_steps = 7
     steps = list()
 
-    k = 2
+    k = 25
     n_episodes = 100
 
     agents = dict(
@@ -95,13 +95,15 @@ def run():
     for label, marker, alpha, key in zip(labels, markers, alphas, agents.keys()):
         q_p10, q_p50, q_p90 = rewards[key]
         plt.plot(steps, np.array(q_p50), marker=marker, label=label[0])
-        plt.fill_between(steps, q_p10, q_p90, label=label[1], alpha=alpha)
+        plt.fill_between(steps, q_p10, q_p90, alpha=alpha)
 
     plt.plot(steps, best_reward, label='Best reward')
     plt.xlabel('Size of gridworld')
     plt.ylabel('Cumulative average reward after 100 episodes')
-    plt.title('Deep Sea Experiment - Serial')
+    plt.title('Deep Sea Experiment')
     plt.legend()
+    plt.tight_layout()
+    plt.grid(True)
     plt.show()
 
 

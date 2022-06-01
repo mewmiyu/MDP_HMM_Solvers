@@ -54,8 +54,8 @@ def run():
     height = 4
     steps = list()
 
-    k = 25
-    n_episodes = 5
+    k = 10
+    n_episodes = 1000
 
     agents = dict(
         q=QLearning,
@@ -79,7 +79,7 @@ def run():
 
     best_reward = list()
 
-    for p in [0, 0.1, 0.2]:
+    for p in [0, .1, .15, .2, 0.25]:
         steps.append(p)
 
         # Create the grid environment
@@ -110,14 +110,14 @@ def run():
 
         sum_reward = 0
         for j in range(width + 1):
-            sum_reward -= 1 ** j * (0.5 / width)
-        best_reward.append(10 + (0.5 / width) + sum_reward)
+            sum_reward -= 1 ** j * (0.05 / width)
+        best_reward.append(1 + (0.05 / width) + sum_reward)
 
     steps = np.array(steps)
     for label, marker, alpha, key in zip(labels, markers, alphas, agents.keys()):
         q_p10, q_p50, q_p90 = rewards[key]
         plt.plot(steps, np.array(q_p50), marker=marker, label=label[0])
-        plt.fill_between(steps, q_p10, q_p90, label=label[1], alpha=alpha)
+        plt.fill_between(steps, q_p10, q_p90, alpha=alpha)
 
     plt.plot(steps, best_reward, label='best reward')
 
@@ -126,6 +126,8 @@ def run():
     plt.title(f'Cliff-Walking Experiment for Grid-World of size {width} x {height}')
     plt.yscale('Symlog', linthresh=0.01)
     plt.legend()
+    plt.tight_layout()
+    plt.grid(True)
     plt.show()
 
 
