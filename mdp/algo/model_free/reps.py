@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 from mushroom_rl.core import MDPInfo
 from mdp.algo.model_free.reps_int import REPSInt
@@ -12,8 +14,10 @@ class REPS(REPSInt):
     def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, eps=0.7):
         self.eps = eps
         self.Q = Table(mdp_info.size)
+        self.policy_table_base = Table(mdp_info.size)
         policy.set_q(self.Q)
-        self.errors = list()
+        self.errors = np.zeros(mdp_info.size)
+        self.states = list()
         super().__init__(mdp_info, policy, self.Q, learning_rate)
 
     @staticmethod
@@ -41,13 +45,18 @@ class REPS(REPSInt):
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
                 absorbing: bool):
-        # Bellman error delta_v^i = r_n + max_a Q(s_n', a) - max_a Q(s_n, a)
-        error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
-        # self.Q[state, action] = reward + np.max(self.Q[next_state, :]) - np.max(self.Q[state, :])
-        print(self.Q[next_state, :])
-        self.errors.append(error)
+        # update q-table
+        self.Q[state, action] = reward + np.nanmax(self.Q[next_state, :])
+
+        #error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
+        #self.errors.append(error)
 
         if absorbing:
+            # compute advantage over state action space
+            for state in self.states:
+                self.errors[state, :] = self.Q[state, :] - np.max(self.Q[state, :])
+            policy_table = deepcopy(self.policy_table_base)
+
             eta_start = np.ones(1)  # Must be larger than 0
             # eta and v are obtained by minimizing the dual function
             result = minimize(
@@ -58,9 +67,7 @@ class REPS(REPSInt):
                 args=(self.eps, self.errors),  # Additional arguments for the function
             )
             eta_optimal = result.x.item()
-            #print(eta_optimal)
-            # eta_optimal = self.dual_function(eta_start, self.errors, state, action)
-            self.Q[state, action] = np.exp((1 / eta_optimal) * np.nanmax(self.errors)) / np.sum(
-                self.Q[state, :] * np.exp((1 / eta_optimal) * np.nanmax(self.errors)))
-            print("q")
-            print(self.Q[state, action])
+            for state in self.states:
+                policy_table[state, action] = np.exp(eta_optimal * self.errors[state, :]) / (np.sum(
+                    np.exp(eta_optimal * self.errors[state, :])) + 0.0000001)
+            self.policy.set_q(policy_table)
