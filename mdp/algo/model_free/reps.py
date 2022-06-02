@@ -45,9 +45,16 @@ class REPS(REPSInt):
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
                 absorbing: bool):
-        # update q-table
-        self.Q[state, action] = reward + np.nanmax(self.Q[next_state, :])
+        # Use SARSA for updating the q-table
+        q_current = self.Q[state, action]
 
+        self.next_action = self.draw_action(next_state)
+        q_next = self.Q[next_state, self.next_action] if not absorbing else 0.
+
+        self.Q[state, action] = q_current + self._alpha(state, action) * (
+                reward + self.mdp_info.gamma * q_next - q_current)
+
+        self.states.append(state)
         #error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
         #self.errors.append(error)
 
@@ -68,6 +75,6 @@ class REPS(REPSInt):
             )
             eta_optimal = result.x.item()
             for state in self.states:
-                policy_table[state, action] = np.exp(eta_optimal * self.errors[state, :]) / (np.sum(
+                policy_table[state, :] = np.exp(eta_optimal * self.errors[state, :]) / (np.sum(
                     np.exp(eta_optimal * self.errors[state, :])) + 0.0000001)
             self.policy.set_q(policy_table)
