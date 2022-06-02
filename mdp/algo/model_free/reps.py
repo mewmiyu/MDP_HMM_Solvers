@@ -1,71 +1,66 @@
-from typing import Union, List, Tuple
-
 import numpy as np
 from mushroom_rl.core import MDPInfo
-from mushroom_rl.algorithms.value.td import TD
+from mdp.algo.model_free.reps_int import REPSInt
 from mushroom_rl.policy import TDPolicy
 from mushroom_rl.utils.parameters import Parameter
 from mushroom_rl.utils.table import Table
 from scipy.optimize import minimize
 
 
-def dual_function(eta_array, *args):
-    eta = eta_array.item()
-    return eta * 0.001 \
-           + eta * np.log(np.mean([np.exp(error / eta) for error in args[0][0]]))
+class REPS(REPSInt):
 
-
-class REPS(TD):
-
-    def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter):
+    def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, eps=0.7):
+        self.eps = eps
         self.Q = Table(mdp_info.size)
-        self.p = Table(mdp_info.size)
         policy.set_q(self.Q)
         self.errors = list()
-        super().__init__(mdp_info, policy, self.p, learning_rate)
+        super().__init__(mdp_info, policy, self.Q, learning_rate)
 
     @staticmethod
-    def _parse(dataset) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, bool]:
-        """
-        Parse a sample from a dataset.
+    def dual_function(eta_array, *args):
+        eta = eta_array.item()
+        eps, errors = args
 
-        Args:
-            dataset: The dataset containing the sample to parse.
+        max_error = np.nanmax(errors)
+        r = errors - max_error
+        sum1 = np.mean(np.exp(r / eta))
+        return eta * eps + eta * np.log(sum1) + max_error
+        # return eta * self.eps + eta * np.log(np.mean([np.exp(error / eta) for error in args[0][0]]))
 
-        Returns:
-            The parsed sample as tuple (state, action, reward, next_state, absorbing).
-        """
-        assert len(dataset) == 1
-        sample = dataset[0]
-        state = sample[0]
-        action = sample[1]
-        reward = sample[2]
-        next_state = sample[3]
-        absorbing = sample[4]
+    @staticmethod
+    def _dual_function_diff(eta_array, *args):
+        eta = eta_array.item()
+        eps, errors = args
 
-        return state, action, reward, next_state, absorbing
-
-    def fit(self, dataset: List[List[np.ndarray]]):
-        assert len(dataset) == 1
-        state, action, reward, next_state, absorbing = self._parse(dataset)
-        self._update(state, action, reward, next_state, absorbing)
+        max_error = np.nanmax(errors)
+        r = errors - max_error
+        sum1 = np.mean(np.exp(r / eta))
+        sum2 = np.mean(np.exp(r / eta) * r)
+        gradient = eps + np.log(sum1) - sum2 / (eta * sum1)
+        return np.array([gradient])
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
                 absorbing: bool):
         # Bellman error delta_v^i = r_n + max_a Q(s_n', a) - max_a Q(s_n, a)
-        error: np.ndarray = reward + np.max(self.p[next_state, :]) - np.max(self.p[state, :])
-        self.Q[state, action] = reward + np.max(self.Q[next_state, :]) - np.max(self.Q[state, :])
+        error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
+        # self.Q[state, action] = reward + np.max(self.Q[next_state, :]) - np.max(self.Q[state, :])
+        print(self.Q[next_state, :])
         self.errors.append(error)
 
         if absorbing:
             eta_start = np.ones(1)  # Must be larger than 0
             # eta and v are obtained by minimizing the dual function
             result = minimize(
-                fun=dual_function,
+                fun=self.dual_function,
                 x0=eta_start,  # Initial guess
-                args=[self.errors],  # Additional arguments for the function
+                jac=REPS._dual_function_diff,  # gradient function
+                bounds=((np.finfo(np.float32).eps, np.inf),),
+                args=(self.eps, self.errors),  # Additional arguments for the function
             )
             eta_optimal = result.x.item()
-            #eta_optimal = self.dual_function(eta_start, self.errors, state, action)
-            self.p[state, action] = np.exp((1 / eta_optimal) * np.max(self.errors)) / np.sum(
-                self.Q[state, :] * np.exp((1 / eta_optimal) * np.max(self.errors)))
+            #print(eta_optimal)
+            # eta_optimal = self.dual_function(eta_start, self.errors, state, action)
+            self.Q[state, action] = np.exp((1 / eta_optimal) * np.nanmax(self.errors)) / np.sum(
+                self.Q[state, :] * np.exp((1 / eta_optimal) * np.nanmax(self.errors)))
+            print("q")
+            print(self.Q[state, action])
