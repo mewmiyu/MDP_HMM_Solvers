@@ -7,12 +7,15 @@ from mushroom_rl.policy import TDPolicy
 from mushroom_rl.utils.parameters import Parameter
 from mushroom_rl.utils.table import Table
 from scipy.optimize import minimize
+from scipy.special import logsumexp
 
-
+# change names of algorithm => not reps, but Psi-REPS
 class REPS(REPSInt):
 
-    def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, eps=0.7):
+    def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, beta_linear: float = .1 / 10,
+                 eps=0.0001):
         self.eps = eps
+        self.eta = beta_linear
         self.Q = Table(mdp_info.size)
         self.policy_table_base = Table(mdp_info.size)
         policy.set_q(self.Q)
@@ -25,10 +28,7 @@ class REPS(REPSInt):
         eta = eta_array.item()
         eps, errors = args
 
-        max_error = np.nanmax(errors)
-        r = errors - max_error
-        sum1 = np.mean(np.exp(r / eta))
-        return eta * eps + eta * np.log(sum1) + max_error
+        return eta * eps + eta * np.log(np.mean(np.exp(errors / eta)))
         # return eta * self.eps + eta * np.log(np.mean([np.exp(error / eta) for error in args[0][0]]))
 
     @staticmethod
@@ -36,27 +36,28 @@ class REPS(REPSInt):
         eta = eta_array.item()
         eps, errors = args
 
-        max_error = np.nanmax(errors)
-        r = errors - max_error
-        sum1 = np.mean(np.exp(r / eta))
-        sum2 = np.mean(np.exp(r / eta) * r)
-        gradient = eps + np.log(sum1) - sum2 / (eta * sum1)
+        gradient = (eps + np.log(np.mean(np.exp(errors / eta))) - np.mean(np.exp(errors / eta) * errors)) / \
+                   (eta * np.mean(np.exp(errors / eta)))
         return np.array([gradient])
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
                 absorbing: bool):
-        # Use SARSA for updating the q-table
-        q_current = self.Q[state, action]
+        # current value of the state, action pair = Psi(state, action)
+        psi_current = self.Q[state, action]
 
-        self.next_action = self.draw_action(next_state)
-        q_next = self.Q[next_state, self.next_action] if not absorbing else 0.
+        # mean_Psi(x) = logsumexp_a(Psi(x, a))
+        mean_psi_current = logsumexp(self.Q[state, :]) if not absorbing else 0.
+        mean_psi_next = logsumexp(self.Q[next_state, :]) if not absorbing else 0.
 
-        self.Q[state, action] = q_current + self._alpha(state, action) * (
-                reward + self.mdp_info.gamma * q_next - q_current)
-
+        # update rule for Psi(state, action)
+        # Psi(state, action) = psi_current + alpha * (reward + gamma * mean_psi_next - mean_psi_current)
+        self.Q[state, action] = psi_current + (reward
+                                               + self.mdp_info.gamma * mean_psi_next
+                                               - mean_psi_current)
+        # self.Q[state, action] = reward + np.max(self.Q[next_state, :])
         self.states.append(state)
-        #error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
-        #self.errors.append(error)
+        # error: np.ndarray = reward + np.nanmax(self.Q[next_state, :]) - np.nanmax(self.Q[state, :])
+        # self.errors.append(error)
 
         if absorbing:
             # compute advantage over state action space
@@ -64,8 +65,8 @@ class REPS(REPSInt):
                 self.errors[state, :] = self.Q[state, :] - np.max(self.Q[state, :])
             policy_table = deepcopy(self.policy_table_base)
 
-            eta_start = np.ones(1)  # Must be larger than 0
-            # eta and v are obtained by minimizing the dual function
+            eta_start = np.array(self.eta)  # Must be larger than 0
+            # beta is obtained by minimizing the dual function
             result = minimize(
                 fun=self.dual_function,
                 x0=eta_start,  # Initial guess
@@ -76,5 +77,5 @@ class REPS(REPSInt):
             eta_optimal = result.x.item()
             for state in self.states:
                 policy_table[state, :] = np.exp(eta_optimal * self.errors[state, :]) / (np.sum(
-                    np.exp(eta_optimal * self.errors[state, :])) + 0.0000001)
+                    self.Q[state, :] * np.exp(eta_optimal * self.errors[state, :])) + 0.0000001)
             self.policy.set_q(policy_table)

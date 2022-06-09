@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mushroom_rl.algorithms.value.td.q_learning import QLearning
 from mushroom_rl.core import Core, Agent, Environment
-from mushroom_rl.policy import EpsGreedy
+from mushroom_rl.policy import EpsGreedy, Boltzmann
 from mushroom_rl.utils.dataset import compute_J
 from mushroom_rl.utils.parameters import Parameter
 
@@ -36,10 +36,9 @@ def run():
     steps = list()
 
     k = 25
-    n_episodes = 10
+    n_episodes = 100
 
     agents = dict(
-        q=QLearning,
         reps=REPS
     )
 
@@ -68,12 +67,12 @@ def run():
 
         # Use an epsilon-greedy policy
         epsilon = .1
-        pi = EpsGreedy(epsilon=epsilon)
+        pi2 = Boltzmann(beta=epsilon)
 
         learning_rate = Parameter(.1 / 10)
 
         for key, value in agents.items():
-            agent = value(env.info, pi, learning_rate=learning_rate)
+            agent = value(env.info, pi2, learning_rate=learning_rate)
             reward_k = experiment_deepsea(agent, env, n_episodes, k)
             # q_p10, q_p50, q_p90
             q_p = np.percentile(reward_k, q)
