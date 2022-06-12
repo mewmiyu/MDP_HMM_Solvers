@@ -42,7 +42,7 @@ def run():
             psi=PsiLearning
         )
 
-        q = [10, 50, 90]
+        q = [25, 50, 75]
 
         labels: map[List[str]] = map(lambda l: [f'{l}_median', f'{l}_10:90'], agents.keys())
 

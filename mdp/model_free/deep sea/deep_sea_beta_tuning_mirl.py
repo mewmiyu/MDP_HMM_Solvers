@@ -32,7 +32,7 @@ def experiment_deepsea(agent: Agent, env: Environment, n_episodes: int, k: int) 
 
 def run():
     for alpha_p, marker, alpha in \
-            zip([0.00000002, 0.000002, 0.0002, 0.02, 1], ['o', '^', '>', '<', 'v'], [.3, .25, .2, .15, .1]):
+            zip([0.00000001, 0.000001, 0.0001, 0.01, 1], ['o', '^', '>', '<', 'v'], [.3, .25, .2, .15, .1]):
         max_steps = 4
 
         k = 25
@@ -42,7 +42,7 @@ def run():
             mirl=MIRL
         )
 
-        q = [10, 50, 90]
+        q = [25, 50, 75]
 
         labels: map[List[str]] = map(lambda l: [f'{l}_median', f'{l}_10:90'], agents.keys())
 

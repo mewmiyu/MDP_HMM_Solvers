@@ -47,7 +47,7 @@ def experiment_cliffwalking(agent: Agent, env: Environment, n_episodes: int, k: 
 
 
 def run():
-    for beta, marker, alpha in \
+    for alpha_p, marker, alpha in \
             zip([0.00000001, 0.000001, 0.0001, 0.01, 1], ['o', '^', '>', '<', 'v'], [.3, .25, .2, .15, .1]):
         width = 12
         height = 4
@@ -60,7 +60,7 @@ def run():
             mirl=MIRL
         )
 
-        q = [10, 50, 90]
+        q = [25, 50, 75]
 
         labels: map[List[str]] = map(lambda l: [f'{l}_median', f'{l}_10:90'], agents.keys())
 
@@ -93,7 +93,8 @@ def run():
             learning_rate = Parameter(.1 / 10)
 
             for key, value in agents.items():
-                agent = value(env.info, pi, learning_rate=learning_rate, beta_linear=beta)
+                agent = value(env.info, pi, learning_rate=learning_rate, beta_linear=0.000001,
+                              alpha_prior=alpha_p)
                 reward_k = experiment_cliffwalking(agent, env, n_episodes, k)
                 # q_p10, q_p50, q_p90
                 q_p = np.percentile(reward_k, q)
@@ -110,7 +111,7 @@ def run():
         steps = np.array(steps)
         for label, key in zip(labels, agents.keys()):
             q_p10, q_p50, q_p90 = rewards[key]
-            plt.plot(steps, np.array(q_p50), marker=marker, label=f'Beta:{beta}')
+            plt.plot(steps, np.array(q_p50), marker=marker, label=f'Alpha_p:{alpha_p}')
             plt.fill_between(steps, q_p10, q_p90, alpha=alpha)
 
     plt.plot(steps, best_reward, label='best reward')
