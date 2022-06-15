@@ -42,7 +42,7 @@ class MIRL(TD):
                 absorbing: bool):
         """
         Updates the state and action values after interaction with the environment in order to find the optimal
-        value function G.
+        value function Q.
 
         Args:
             state: The current state

@@ -34,7 +34,7 @@ class PsiLearning(TD):
     def _update(self, state, action, reward, next_state, absorbing):
         """
         Updates the state and action values after interaction with the environment in order to find the optimal
-        value function G.
+        value function Psi.
 
         Args:
             state: The current state

@@ -9,9 +9,31 @@ from scipy.special import logsumexp
 
 
 class PsiAuto(TD):
+    """
+            Automatically beta-tuning for the Psi-algorithm.
+
+            Based on:
+            "Approximate Inference and Stochastic Optimal Control".
+            Konrad Rawlik, Marc Toussaint, and Sethu Vijayakumar. 2018.
+
+            And the dual function minimization idea is from:
+            "Relative Entropy Policy Search"
+            Jan Peters, Katharina Muelling, Yasemin Altun. 2012
+    """
 
     def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, beta_linear: float = 0.01,
                  eps=1):
+        """
+        Constructor.
+
+        Args:
+            mdp_info: The information about the MDP
+            policy: The policy followed by the agent
+            learning_rate: The learning rate (alpha)
+            beta_linear: The constant for the linear inverse temperature parameter
+            eps: the maximum admissible value for the Kullback-Leibler divergence between
+                 the new inverse temperature and the previous one at each update step.
+        """
         self.eps = eps
         self.beta = beta_linear
         self.Q = Table(mdp_info.size)
@@ -23,6 +45,13 @@ class PsiAuto(TD):
 
     @staticmethod
     def dual_function(beta_array, *args):
+        """
+        Computes the dual function
+
+        Args:
+        beta_array: value for the inverse temperature beta
+        args: additional arguments for the dual function
+        """
         beta = (1 / beta_array.item())
         eps, errors = args
 
@@ -30,6 +59,13 @@ class PsiAuto(TD):
 
     @staticmethod
     def _dual_function_diff(beta_array, *args):
+        """
+            Computes the dual function derivative
+
+            Args:
+            beta_array: value for the inverse temperature beta
+            args: additional arguments for the dual function
+        """
         beta = (1 / beta_array.item())
         eps, errors = args
 
@@ -39,6 +75,17 @@ class PsiAuto(TD):
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
                 absorbing: bool):
+        """
+            Updates the state and action values after interaction with the environment in order to find the optimal
+            value function Q.
+
+            Args:
+                state: The current state
+                action: The action taken
+                reward: The reward obtained
+                next_state: The next state
+                absorbing: Whether the next state is absorbing or not
+        """
         # current value of the state, action pair = Psi(state, action)
         psi_current = self.Q[state, action]
 
@@ -55,7 +102,7 @@ class PsiAuto(TD):
         self.states.append(state)
 
         if absorbing:  # last state
-            # compute difference over state action space
+            # compute advantage over state action space
             for state in self.states:
                 self.errors[state, :] = self.Q[state, :] - np.max(self.Q[state, :])
 

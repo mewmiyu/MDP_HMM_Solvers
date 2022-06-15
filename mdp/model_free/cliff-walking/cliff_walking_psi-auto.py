@@ -54,7 +54,7 @@ def run():
     steps = list()
 
     k = 10
-    n_episodes = 100
+    n_episodes = 1000
 
     agents = dict(
         psia=PsiAuto,
