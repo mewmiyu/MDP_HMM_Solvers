@@ -5,7 +5,7 @@ from mushroom_rl.algorithms.value import QLearning
 from mdp.algo.model_free.g_learning import GLearning
 from mdp.algo.model_free.mirl import MIRL
 from mdp.algo.model_free.psi_learning import PsiLearning
-from mdp.algo.model_free.reps import REPS
+from mdp.algo.model_free.psi_auto import REPS
 from mdp.experiment import CliffWalkingExperiment
 from mdp.experiment import DeepSeaExperiment
 from mdp.experiment.model_free import Experiment
