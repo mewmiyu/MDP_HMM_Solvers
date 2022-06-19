@@ -49,12 +49,12 @@ def experiment_cliffwalking(agent: Agent, env: Environment, n_episodes: int, k: 
 
 
 def run():
-    width = 12
-    height = 4
+    width = 3
+    height = 3
     steps = list()
 
     k = 10
-    n_episodes = 1000
+    n_episodes = 100
 
     agents = dict(
         psia=PsiAuto,
@@ -139,6 +139,7 @@ def run():
     plt.legend()
     plt.tight_layout()
     plt.grid(True)
+    print(betas)
     plt.show()
 
 

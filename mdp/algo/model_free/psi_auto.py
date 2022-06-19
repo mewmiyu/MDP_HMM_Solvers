@@ -52,10 +52,10 @@ class PsiAuto(TD):
         beta_array: value for the inverse temperature beta
         args: additional arguments for the dual function
         """
-        beta = (1 / beta_array.item())
+        beta_inv = (1 / beta_array.item())
         eps, errors = args
 
-        return beta * eps + beta * np.log(np.mean(np.exp(errors / beta)))
+        return beta_inv * eps + beta_inv * np.log(np.mean(np.exp(errors / beta_inv)))
 
     @staticmethod
     def _dual_function_diff(beta_array, *args):
@@ -66,11 +66,11 @@ class PsiAuto(TD):
             beta_array: value for the inverse temperature beta
             args: additional arguments for the dual function
         """
-        beta = (1 / beta_array.item())
+        beta_inv = (1 / beta_array.item())
         eps, errors = args
 
-        gradient = (eps + np.log(np.mean(np.exp(errors / beta))) - np.mean(np.exp(errors / beta) * errors)) / \
-                   (beta * np.mean(np.exp(errors / beta)))
+        gradient = (eps + np.log(np.mean(np.exp(errors / beta_inv))) - np.mean(np.exp(errors / beta_inv) * errors)) / \
+                   (beta_inv * np.mean(np.exp(errors / beta_inv)))
         return np.array([gradient])
 
     def _update(self, state: np.ndarray, action: np.ndarray, reward: np.ndarray, next_state: np.ndarray,
