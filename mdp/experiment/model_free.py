@@ -13,7 +13,7 @@ from mdp.algo.model_free.env.deep_sea import DeepSea
 from mdp.algo.model_free.g_learning import GLearning
 from mdp.algo.model_free.mirl import MIRL
 from mdp.algo.model_free.psi_learning import PsiLearning
-from mdp.algo.model_free.psi_kl import PsiAuto
+from mdp.algo.model_free.psi_kl import PsiKL
 
 
 class Experiment:
@@ -32,7 +32,7 @@ class Experiment:
         psi=PsiLearning,
         g=GLearning,
         mirl=MIRL,
-        psia=PsiAuto
+        psia=PsiKL
     )
 
     AGENTS_NAME: Dict[str, str] = dict(
@@ -40,7 +40,7 @@ class Experiment:
         psi='Psi Learning',
         g='G Learning',
         mirl='MIRL',
-        psia='PsiAuto'
+        psi_kl='Psi KL'
     )
 
     Q: List[int] = [10, 50, 90]
