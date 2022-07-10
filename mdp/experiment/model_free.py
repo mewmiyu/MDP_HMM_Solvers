@@ -13,7 +13,7 @@ from mdp.algo.model_free.env.deep_sea import DeepSea
 from mdp.algo.model_free.g_learning import GLearning
 from mdp.algo.model_free.mirl import MIRL
 from mdp.algo.model_free.psi_learning import PsiLearning
-from mdp.algo.model_free.psi_auto import PsiAuto
+from mdp.algo.model_free.psi_kl import PsiAuto
 
 
 class Experiment:

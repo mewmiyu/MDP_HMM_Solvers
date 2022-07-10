@@ -15,7 +15,7 @@ class MIRL(TD):
         Jordi Grau-Moya, Felix Leibfried and Peter Vrancx. 2019.
     """
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, alpha_prior: float = 0.02,
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, alpha_prior: float = 0.00000001,
                  beta_linear: float = 0.00000001):
         """
         Constructor.

@@ -11,8 +11,7 @@ from mushroom_rl.utils.parameters import Parameter
 from mdp.algo.model_free.env.cliff_walking import CliffWalking
 from mdp.algo.model_free.psi_learning import PsiLearning
 from mdp.experiment.model_free import Experiment
-from mdp.algo.model_free.psi_auto import PsiAuto
-
+from mdp.algo.model_free.psi_kl import PsiKL
 
 def experiment_cliffwalking(agent: Agent, env: Environment, n_episodes: int, k: int) -> List[np.ndarray]:
     r_k = list()
@@ -57,7 +56,7 @@ def run():
     n_episodes = 100
 
     agents = dict(
-        psia=PsiAuto,
+        psia=PsiKL,
         psi=PsiLearning
     )
 

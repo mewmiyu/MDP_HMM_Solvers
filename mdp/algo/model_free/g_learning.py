@@ -15,7 +15,7 @@ class GLearning(TD):
     Roy Fox, Ari Pakman, Naftali Tishby. 2017.
     """
 
-    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, beta_linear: float = 0.00000001):
+    def __init__(self, mdp_info: MDPInfo, policy: Policy, learning_rate: Parameter, beta_linear: float = 0.000001):
         """
         Constructor.
 

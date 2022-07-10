@@ -10,7 +10,7 @@ from mushroom_rl.utils.dataset import compute_J
 from mushroom_rl.utils.parameters import Parameter
 
 from mdp.algo.model_free.env.deep_sea import DeepSea
-from mdp.algo.model_free.psi_auto import PsiAuto
+from mdp.algo.model_free.psi_kl import PsiKL
 from mdp.experiment.model_free import Experiment
 
 
@@ -40,7 +40,7 @@ def run():
     n_episodes = 100
 
     agents = dict(
-        psia=PsiAuto,
+        psi_kl=PsiKL,
         psi=PsiLearning,
         q=QLearning
     )

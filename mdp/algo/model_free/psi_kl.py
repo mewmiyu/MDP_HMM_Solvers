@@ -8,17 +8,16 @@ from scipy.optimize import minimize
 from scipy.special import logsumexp
 
 
-class PsiAuto(TD):
+class PsiKL(TD):
     """
-            Automatically beta-tuning for the Psi-algorithm.
+            Beta-tuning with a KL-constraint for the Psi-algorithm.
 
             Based on:
             "Approximate Inference and Stochastic Optimal Control".
             Konrad Rawlik, Marc Toussaint, and Sethu Vijayakumar. 2018.
 
-            And the dual function minimization idea is from:
-            "Relative Entropy Policy Search"
-            Jan Peters, Katharina Muelling, Yasemin Altun. 2012
+            "Advantage-Weighted Regression: Simple and Scalable Off-Policy Reinforcement Learning"
+            Xue Bin Peng, Aviral Kumar, Grace Zhang, Sergey Levine. 2019.
     """
 
     def __init__(self, mdp_info: MDPInfo, policy: TDPolicy, learning_rate: Parameter, beta_linear: float = 0.01,
