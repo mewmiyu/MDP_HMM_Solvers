@@ -17,7 +17,7 @@ inverse temperature beta for each
 model-free algorithm with inference (G-learning, Psi-learning and MIRL) and
 the experiment for the comparison of the algorithms to Q-learning. Additionally,
 there are two experiments (deep sea and cliff-walking) for the algorithm called
-Psi-Auto, an algorithm based on Psi-learning that tries to automatically tune
+Psi-KL, an algorithm based on Psi-learning that tries to tune
 the inverse temperature by minimizing a dual function. This dual function is dependent on the advantage
 over the state action space and the initial value for the inverse temperature.
 
